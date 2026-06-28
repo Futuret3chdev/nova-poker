@@ -610,7 +610,7 @@ html, body {
   font-style: italic;
 }
 
-.btn-load {
+.btn-buy-mt {
   padding: 8px 14px;
   border: none;
   border-radius: 8px;
@@ -619,12 +619,47 @@ html, body {
   font-weight: 700;
   font-size: 0.75rem;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
-.btn-load:disabled { opacity: 0.35; cursor: not-allowed; }
 
-.wallet-bar .btn-load,
+.btn-refresh {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0 4px;
+  margin-left: 4px;
+}
+.btn-refresh:hover { color: var(--gold); }
+
+.wallet-bar .btn-buy-mt,
 .wallet-bar .btn-bonus {
   margin-left: auto;
+}
+
+.mode-slots {
+  border-color: rgba(255, 193, 7, 0.35) !important;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.08), var(--surface));
+}
+.mode-slots:hover {
+  border-color: var(--gold) !important;
+  box-shadow: 0 4px 24px rgba(255, 193, 7, 0.2);
+}
+
+.reels-frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #0a0612;
+  min-height: 0;
+}
+
+#reels-screen {
+  flex-direction: column;
+  height: 100%;
 }
 
 .btn-bonus {

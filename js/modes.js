@@ -1,3 +1,15 @@
+export const CASINO_GAMES = [
+  {
+    id: 'lucky-reels',
+    title: 'Lucky Reels',
+    subtitle: 'Premium slots — real $MEMETORRENT on-chain',
+    icon: '🎰',
+    badge: 'SLOTS',
+    external: true,
+    url: 'https://lucky-reels-eosin.vercel.app'
+  }
+];
+
 export const TABLE_MODES = {
   'free-ai': {
     id: 'free-ai',
@@ -34,13 +46,13 @@ export const TABLE_MODES = {
     title: '$MT vs AI',
     subtitle: 'Load $MT from wallet — no free tokens',
     currency: 'mt',
-    symbol: 'MT',
+    symbol: '$MEMETORRENT',
     vsAI: true,
     multiplayer: false,
-    startingChips: 1000,
-    smallBlind: 5,
-    bigBlind: 10,
-    buyIn: 1000,
+    startingChips: 100,
+    smallBlind: 0.05,
+    bigBlind: 0.1,
+    buyIn: 1,
     icon: '💎',
     badge: '$MT'
   },
@@ -49,13 +61,13 @@ export const TABLE_MODES = {
     title: '$MT Multiplayer',
     subtitle: 'Connect wallet & load $MT to play',
     currency: 'mt',
-    symbol: 'MT',
+    symbol: '$MEMETORRENT',
     vsAI: false,
     multiplayer: true,
-    startingChips: 1000,
-    smallBlind: 10,
-    bigBlind: 20,
-    buyIn: 1000,
+    startingChips: 200,
+    smallBlind: 0.1,
+    bigBlind: 0.2,
+    buyIn: 2,
     icon: '⚡',
     badge: '$MT'
   },
@@ -64,13 +76,13 @@ export const TABLE_MODES = {
     title: 'Turbo $MT',
     subtitle: 'Fast blinds, quick hands',
     currency: 'mt',
-    symbol: 'MT',
+    symbol: '$MEMETORRENT',
     vsAI: true,
     multiplayer: false,
-    startingChips: 500,
-    smallBlind: 10,
-    bigBlind: 20,
-    buyIn: 250,
+    startingChips: 50,
+    smallBlind: 0.05,
+    bigBlind: 0.1,
+    buyIn: 0.5,
     icon: '🚀',
     badge: 'TURBO'
   },
@@ -106,9 +118,9 @@ export const MENU_SECTIONS = [
 ];
 
 export const MULTIPLAYER_ROOMS = [
-  { id: 'mt-high', name: 'MT High Rollers', stakes: '50/100 MT', players: 4, max: 6, currency: 'mt' },
+  { id: 'mt-high', name: 'MT High Rollers', stakes: '0.5/1 MT', players: 4, max: 6, currency: 'mt' },
   { id: 'free-casual', name: 'Casual Lounge', stakes: '25/50 ₵', players: 2, max: 6, currency: 'free' },
-  { id: 'mt-micro', name: 'Micro Stakes', stakes: '5/10 MT', players: 5, max: 6, currency: 'mt' },
+  { id: 'mt-micro', name: 'Micro Stakes', stakes: '0.05/0.1 MT', players: 5, max: 6, currency: 'mt' },
   { id: 'free-turbo', name: 'Turbo Freeroll', stakes: '10/20 ₵', players: 3, max: 6, currency: 'free' }
 ];
 

@@ -1,14 +1,14 @@
-import { PokerGame } from './game.js?v=3';
-import { PokerUI } from './ui.js?v=3';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=3';
+import { PokerGame } from './game.js?v=4';
+import { PokerUI } from './ui.js?v=4';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=4';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
-  cashOutMt, refreshMtBalance, shortAddress
-} from './wallet.js?v=3';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=3';
-import { detectWallets, depositMtToCasino, walletInstallUrl } from './solana-wallet.js?v=3';
-import { MEMETORRENT } from './config.js?v=3';
+  refreshMtBalance, shortAddress
+} from './wallet.js?v=4';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=4';
+import { detectWallets, sendMTToTreasury, walletInstallUrl } from './solana-wallet.js?v=4';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=4';
 
 let game = null;
 let ui = null;
@@ -37,15 +37,21 @@ function closeModal(id) {
   document.getElementById(id)?.setAttribute('hidden', '');
 }
 
+function formatMt(n) {
+  const v = Number(n) || 0;
+  return v < 1 ? v.toFixed(2) : v.toLocaleString();
+}
+
 async function updateWalletUI() {
   if (wallet.walletConnected) wallet = await refreshMtBalance(wallet);
 
-  const name = wallet.screenName || 'Player1';
   const nameInput = document.getElementById('player-name');
-  if (nameInput && !nameInput.matches(':focus')) nameInput.value = name;
+  if (nameInput && !nameInput.matches(':focus')) {
+    nameInput.value = wallet.screenName || 'Player1';
+  }
 
   document.getElementById('hud-mt')?.replaceChildren(
-    document.createTextNode((wallet.mtBalance || 0).toLocaleString())
+    document.createTextNode(formatMt(wallet.mtBalance))
   );
   document.getElementById('hud-chips')?.replaceChildren(
     document.createTextNode(wallet.freeChips.toLocaleString())
@@ -57,10 +63,10 @@ async function updateWalletUI() {
   const addrEl = document.getElementById('wallet-address');
   if (addrEl) {
     if (wallet.walletConnected) {
-      const type = wallet.walletType === 'solflare' ? 'Solflare' : 'Phantom';
-      addrEl.textContent = `${type}: ${shortAddress(wallet.walletAddress)}`;
+      const type = (wallet.walletType || 'wallet').charAt(0).toUpperCase() + (wallet.walletType || '').slice(1);
+      addrEl.textContent = `${type}: ${shortAddress(wallet.walletAddress)} · SOL ${(wallet.solBalance || 0).toFixed(3)}`;
     } else {
-      addrEl.textContent = 'Connect Phantom or Solflare to play $MT';
+      addrEl.textContent = 'Connect Phantom, Solflare or Backpack';
     }
   }
 
@@ -70,18 +76,45 @@ async function updateWalletUI() {
     connectBtn.classList.toggle('connected', wallet.walletConnected);
   }
 
-  const loadBtn = document.getElementById('btn-load-mt');
-  if (loadBtn) loadBtn.disabled = !wallet.walletConnected;
+  const buyBtn = document.getElementById('btn-buy-mt');
+  if (buyBtn) buyBtn.href = MEMETORRENT.jupiterBuy;
 
   const bonusBtn = document.getElementById('btn-daily');
   const today = new Date().toISOString().slice(0, 10);
-  if (bonusBtn) {
-    bonusBtn.disabled = wallet.lastDailyBonus === today;
-    bonusBtn.title = 'Free play chips only — no $MT';
-  }
+  if (bonusBtn) bonusBtn.disabled = wallet.lastDailyBonus === today;
+}
+
+function renderCasinoGames() {
+  const el = document.getElementById('menu-games');
+  if (!el) return;
+  el.innerHTML = `<h3>Casino Games</h3><div class="mode-grid" id="games-grid"></div>`;
+  const grid = document.getElementById('games-grid');
+
+  CASINO_GAMES.forEach((g) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'mode-card mode-slots';
+    card.innerHTML = `
+      <span class="mode-icon">${g.icon}</span>
+      <span class="mode-badge-sm">${g.badge}</span>
+      <span class="mode-title">${g.title}</span>
+      <span class="mode-desc">${g.subtitle}</span>
+      <span class="mode-stakes">Live on-chain · Lucky Reels</span>
+    `;
+    card.addEventListener('click', () => openLuckyReels());
+    grid.appendChild(card);
+  });
+}
+
+function openLuckyReels() {
+  const frame = document.getElementById('reels-frame');
+  if (frame) frame.src = LUCKY_REELS_URL;
+  document.getElementById('btn-reels-open')?.setAttribute('href', LUCKY_REELS_URL);
+  showScreen('reels');
 }
 
 function renderMenu() {
+  renderCasinoGames();
   const container = document.getElementById('menu-modes');
   if (!container) return;
   container.innerHTML = '';
@@ -104,7 +137,7 @@ function renderMenu() {
         <span class="mode-badge-sm">${mode.badge}</span>
         <span class="mode-title">${mode.title}</span>
         <span class="mode-desc">${mode.subtitle}</span>
-        <span class="mode-stakes">Blinds ${mode.smallBlind}/${mode.bigBlind} ${mode.symbol}</span>
+        <span class="mode-stakes">Blinds ${mode.smallBlind}/${mode.bigBlind} ${mode.symbol === '$MEMETORRENT' ? 'MT' : mode.symbol}</span>
       `;
       card.addEventListener('click', () => selectMode(mode));
       grid.appendChild(card);
@@ -142,34 +175,33 @@ function renderRooms() {
 
 function selectMode(mode, roomName = '') {
   if (mode.currency === 'mt' && !wallet.walletConnected) {
-    toast('Connect Phantom or Solflare first');
+    toast('Connect wallet first — same as Lucky Reels');
     openModal('wallet-modal');
     return;
   }
   if (mode.currency === 'mt' && mode.buyIn > 0 && wallet.mtBalance < mode.buyIn) {
-    toast(`Load $MT first — need ${mode.buyIn} MT buy-in`);
-    openLoadModal();
+    toast(`Need ${mode.buyIn} $MEMETORRENT — buy on Jupiter`);
+    window.open(MEMETORRENT.jupiterBuy, '_blank');
     return;
   }
 
   pendingMode = { ...mode, roomName };
-  const sym = mode.symbol;
-  const buyInText = mode.buyIn > 0 ? `${mode.buyIn.toLocaleString()} ${sym}` : 'Free';
+  const sym = mode.symbol === '$MEMETORRENT' ? 'MT' : mode.symbol;
+  const buyInText = mode.buyIn > 0 ? `${mode.buyIn} ${sym}` : 'Free';
 
   document.getElementById('setup-title').textContent = mode.title;
   document.getElementById('setup-desc').textContent = roomName || mode.subtitle;
   document.getElementById('setup-buyin').textContent = buyInText;
   document.getElementById('setup-blinds').textContent = `${mode.smallBlind} / ${mode.bigBlind} ${sym}`;
-  document.getElementById('setup-stack').textContent = `${mode.startingChips.toLocaleString()} ${sym}`;
+  document.getElementById('setup-stack').textContent = `${mode.startingChips} ${sym}`;
 
   const mtWarn = document.getElementById('setup-mt-warn');
   if (mtWarn) {
-    mtWarn.style.display = mode.currency === 'mt' ? '' : 'none';
-    if (mode.currency === 'mt' && !wallet.walletConnected) {
-      mtWarn.textContent = 'Connect Phantom or Solflare to play $MT';
-    } else if (mode.currency === 'mt' && !canAffordBuyIn(wallet, mode, mode.buyIn)) {
-      mtWarn.textContent = `Load ${mode.buyIn} MT — casino balance: ${wallet.mtBalance} MT`;
+    if (mode.currency === 'mt') {
+      mtWarn.style.display = '';
+      mtWarn.textContent = `Buy-in sends ${mode.buyIn} MT to MT Treasury (on-chain, like Lucky Reels spins)`;
     } else {
+      mtWarn.style.display = 'none';
       mtWarn.textContent = '';
     }
   }
@@ -199,137 +231,87 @@ function startMatchmaking(mode) {
   });
 }
 
-function openLoadModal() {
-  if (!wallet.walletConnected) {
-    openModal('wallet-modal');
-    return;
-  }
-  document.getElementById('load-wallet-addr').textContent = shortAddress(wallet.walletAddress);
-  const hint = document.getElementById('load-hint');
-  if (hint) {
-    if (MEMETORRENT.mtMint && MEMETORRENT.vaultAddress) {
-      hint.textContent = `Min deposit ${MEMETORRENT.minDeposit} MT. You approve the transfer in your wallet.`;
-    } else {
-      hint.textContent = 'MemeTorrent $MT mint launching soon — vault address will be enabled.';
-    }
-  }
-  openModal('load-modal');
-}
-
-async function handleConnect(type) {
-  const detected = detectWallets();
-  if (!detected[type]) {
-    toast(`Install ${type === 'phantom' ? 'Phantom' : 'Solflare'} first`);
-    window.open(walletInstallUrl(type), '_blank');
-    return;
-  }
-  try {
-    wallet = await connectWalletProvider(type);
-    closeModal('wallet-modal');
-    toast(`${type === 'phantom' ? 'Phantom' : 'Solflare'} connected — load $MT to play stakes`);
-    await updateWalletUI();
-  } catch (err) {
-    toast(err.message || 'Wallet connection failed');
-  }
-}
-
-async function handleDeposit() {
-  const amount = Number(document.getElementById('load-amount')?.value || 0);
-  if (!amount || amount < MEMETORRENT.minDeposit) {
-    toast(`Minimum load is ${MEMETORRENT.minDeposit} MT`);
-    return;
-  }
-  const btn = document.getElementById('btn-confirm-load');
-  if (btn) { btn.disabled = true; btn.textContent = 'Approve in wallet…'; }
-  try {
-    const res = await depositMtToCasino(amount);
-    wallet = await refreshMtBalance(wallet);
-    closeModal('load-modal');
-    toast(`Loaded ${res.amount.toLocaleString()} MT — ready to play`);
-    await updateWalletUI();
-  } catch (err) {
-    toast(err.message || 'Deposit failed');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Confirm Load'; }
-  }
-}
-
-function launchGame() {
-  const mode = pendingMode || TABLE_MODES['free-ai'];
+async function launchGame() {
+  let mode = pendingMode || TABLE_MODES['free-ai'];
   const name = document.getElementById('player-name')?.value?.trim() || wallet.screenName || 'Player1';
   wallet.screenName = name;
   saveWallet(wallet);
 
-  if (mode.currency === 'mt') {
-    if (!wallet.walletConnected) {
-      toast('Connect Phantom or Solflare first');
-      openModal('wallet-modal');
-      return;
-    }
-    if (mode.buyIn > 0 && !canAffordBuyIn(wallet, mode, mode.buyIn)) {
-      toast(`Load $MT first — need ${mode.buyIn} MT`);
-      openLoadModal();
-      return;
-    }
-    if (mode.buyIn > 0) {
-      wallet = deductBuyIn(wallet, mode, mode.buyIn);
-      mode.startingChips = mode.buyIn;
-      pendingMode = mode;
-      currentMode = mode;
-    }
-  }
+  const launchBtn = document.getElementById('btn-launch');
+  if (launchBtn) { launchBtn.disabled = true; launchBtn.textContent = 'Please wait…'; }
 
-  currentMode = mode;
-  showScreen('game');
-  ui = new PokerUI(document.getElementById('game-screen'), mode);
-
-  const opponentNames = mode.opponents || null;
-  game = new PokerGame({
-    mode,
-    smallBlind: mode.smallBlind,
-    bigBlind: mode.bigBlind,
-    startingChips: mode.startingChips,
-    opponentNames,
-    onUpdate: (state) => {
-      ui.render(state);
-      const sym = mode.symbol;
-      const hud = document.getElementById('wallet-hud');
-      if (hud) {
-        const human = state.players[0];
-        hud.textContent = human ? `${human.chips.toLocaleString()} ${sym}` : '';
+  try {
+    if (mode.currency === 'mt') {
+      if (!wallet.walletConnected) {
+        toast('Connect wallet first');
+        openModal('wallet-modal');
+        return;
       }
-    },
-    onMessage: (msg) => {
-      const el = document.getElementById('game-message');
-      if (el) el.textContent = msg;
-    },
-    onHandEnd: ({ humanWon }) => {
-      wallet = creditWinnings(wallet, mode, 0, humanWon);
-      updateWalletUI();
+      wallet = await refreshMtBalance(wallet);
+      if (mode.buyIn > 0 && wallet.mtBalance < mode.buyIn) {
+        toast(`Need ${mode.buyIn} $MEMETORRENT in wallet`);
+        window.open(MEMETORRENT.jupiterBuy, '_blank');
+        return;
+      }
+      if (mode.buyIn > 0) {
+        toast(`Approve ${mode.buyIn} MT buy-in in your wallet…`);
+        const sig = await sendMTToTreasury(mode.buyIn);
+        wallet = await refreshMtBalance(wallet);
+        toast(`Buy-in confirmed — tx ${String(sig).slice(0, 8)}…`);
+        mode = { ...mode, startingChips: mode.buyIn };
+        pendingMode = mode;
+        currentMode = mode;
+      }
     }
-  });
 
-  ui.bindActions({
-    fold: () => game.humanFold(),
-    check: () => game.humanCheck(),
-    call: () => game.humanCall(),
-    raise: () => game.humanRaise(ui.getRaiseAmount()),
-    allin: () => game.humanAllIn(),
-    nextHand: () => game.nextHand()
-  });
+    currentMode = mode;
+    showScreen('game');
+    ui = new PokerUI(document.getElementById('game-screen'), mode);
 
-  game.initTable(name);
-  document.getElementById('table-brand').textContent = mode.currency === 'mt' ? '$MT' : 'MT';
+    game = new PokerGame({
+      mode,
+      smallBlind: mode.smallBlind,
+      bigBlind: mode.bigBlind,
+      startingChips: mode.startingChips,
+      opponentNames: mode.opponents || null,
+      onUpdate: (state) => {
+        ui.render(state);
+        const hud = document.getElementById('wallet-hud');
+        if (hud) {
+          const human = state.players[0];
+          const sym = mode.symbol === '$MEMETORRENT' ? 'MT' : mode.symbol;
+          hud.textContent = human ? `${human.chips} ${sym}` : '';
+        }
+      },
+      onMessage: (msg) => {
+        const el = document.getElementById('game-message');
+        if (el) el.textContent = msg;
+      },
+      onHandEnd: ({ humanWon }) => {
+        wallet = creditWinnings(wallet, mode, 0, humanWon);
+        updateWalletUI();
+      }
+    });
+
+    ui.bindActions({
+      fold: () => game.humanFold(),
+      check: () => game.humanCheck(),
+      call: () => game.humanCall(),
+      raise: () => game.humanRaise(ui.getRaiseAmount()),
+      allin: () => game.humanAllIn(),
+      nextHand: () => game.nextHand()
+    });
+
+    game.initTable(name);
+    document.getElementById('table-brand').textContent = mode.currency === 'mt' ? '$MT' : 'MT';
+  } catch (err) {
+    toast(err.message || 'Could not start table');
+  } finally {
+    if (launchBtn) { launchBtn.disabled = false; launchBtn.textContent = 'Take a Seat'; }
+  }
 }
 
 async function stopGame() {
-  if (game && currentMode?.currency === 'mt') {
-    const chips = game.players?.[0]?.chips || 0;
-    if (chips > 0) {
-      wallet = cashOutMt(wallet, chips);
-      toast(`Cashed out ${chips.toLocaleString()} MT to casino balance`);
-    }
-  }
   game = null;
   ui = null;
   currentMode = null;
@@ -338,7 +320,22 @@ async function stopGame() {
   showScreen('menu');
 }
 
-// ── Event bindings ──
+async function handleConnect(type) {
+  if (!detectWallets()[type]) {
+    toast(`Install ${type} wallet`);
+    window.open(walletInstallUrl(type), '_blank');
+    return;
+  }
+  try {
+    wallet = await connectWalletProvider(type);
+    closeModal('wallet-modal');
+    toast(`Connected — ${formatMt(wallet.mtBalance)} $MEMETORRENT on-chain`);
+    await updateWalletUI();
+  } catch (err) {
+    toast(err.message || 'Connection failed');
+  }
+}
+
 document.getElementById('btn-enter')?.addEventListener('click', async () => {
   await updateWalletUI();
   renderMenu();
@@ -350,6 +347,10 @@ document.getElementById('btn-launch')?.addEventListener('click', launchGame);
 document.getElementById('btn-setup-back')?.addEventListener('click', () => showScreen('menu'));
 document.getElementById('btn-lobby')?.addEventListener('click', stopGame);
 document.getElementById('btn-menu-back')?.addEventListener('click', () => showScreen('title'));
+document.getElementById('btn-reels-back')?.addEventListener('click', () => {
+  document.getElementById('reels-frame')?.setAttribute('src', 'about:blank');
+  showScreen('menu');
+});
 
 document.getElementById('btn-connect')?.addEventListener('click', async () => {
   if (wallet.walletConnected) {
@@ -363,17 +364,23 @@ document.getElementById('btn-connect')?.addEventListener('click', async () => {
 
 document.getElementById('btn-phantom')?.addEventListener('click', () => handleConnect('phantom'));
 document.getElementById('btn-solflare')?.addEventListener('click', () => handleConnect('solflare'));
+document.getElementById('btn-backpack')?.addEventListener('click', () => handleConnect('backpack'));
 document.getElementById('btn-wallet-cancel')?.addEventListener('click', () => closeModal('wallet-modal'));
 document.getElementById('wallet-modal-backdrop')?.addEventListener('click', () => closeModal('wallet-modal'));
 
-document.getElementById('btn-load-mt')?.addEventListener('click', openLoadModal);
-document.getElementById('btn-confirm-load')?.addEventListener('click', handleDeposit);
-document.getElementById('btn-load-cancel')?.addEventListener('click', () => closeModal('load-modal'));
-document.getElementById('load-modal-backdrop')?.addEventListener('click', () => closeModal('load-modal'));
+document.getElementById('btn-refresh-mt')?.addEventListener('click', async () => {
+  if (!wallet.walletConnected) {
+    toast('Connect wallet first');
+    return;
+  }
+  wallet = await refreshMtBalance(wallet);
+  toast(`Balance: ${formatMt(wallet.mtBalance)} $MEMETORRENT`);
+  await updateWalletUI();
+});
 
 document.getElementById('btn-daily')?.addEventListener('click', () => {
   const res = claimDailyBonus();
-  if (res.ok) toast(`Free chips bonus: +${res.bonus.chips.toLocaleString()} ₵ (play money only)`);
+  if (res.ok) toast(`+${res.bonus.chips.toLocaleString()} free chips (play money only)`);
   else toast('Free chips bonus already claimed today');
   updateWalletUI();
 });

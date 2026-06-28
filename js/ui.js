@@ -43,7 +43,10 @@ export class PokerUI {
 
   formatChips(n, state) {
     const sym = state?.mode?.symbol || this.mode?.symbol || '₵';
-    if (sym === 'MT') return `${Number(n).toLocaleString()} MT`;
+    if (sym === 'MT' || sym === '$MEMETORRENT') {
+      const v = Number(n);
+      return v < 1 ? `${v.toFixed(2)} MT` : `${v.toLocaleString()} MT`;
+    }
     if (n >= 1000) return `${sym}${(n / 1000).toFixed(1)}k`;
     return `${sym}${n}`;
   }
@@ -170,7 +173,7 @@ export class PokerUI {
     if (canRaise) {
       this.els.raiseSlider.min = minRaise;
       this.els.raiseSlider.max = maxRaise;
-      this.els.raiseSlider.step = state.bigBlind;
+      this.els.raiseSlider.step = Math.max(state.bigBlind, 0.01);
       if (!this.raiseAmount || this.raiseAmount < minRaise) {
         this.raiseAmount = minRaise;
       }

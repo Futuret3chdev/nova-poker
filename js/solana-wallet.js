@@ -1,51 +1,18 @@
 import { MEMETORRENT } from './config.js';
 
 let activeProvider = null;
+let activeType = '';
 
 export function detectWallets() {
   return {
     phantom: !!(window.phantom?.solana?.isPhantom),
-    solflare: !!(window.solflare?.isSolflare)
+    solflare: !!window.solflare,
+    backpack: !!window.backpack
   };
 }
 
 export function getProvider() {
   return activeProvider;
-}
-
-export async function connectPhantom() {
-  const provider = window.phantom?.solana;
-  if (!provider?.isPhantom) {
-    throw new Error('Phantom wallet not found — install at phantom.app');
-  }
-  const res = await provider.connect();
-  activeProvider = provider;
-  return {
-    provider,
-    publicKey: res.publicKey.toString(),
-    walletType: 'phantom'
-  };
-}
-
-export async function connectSolflare() {
-  const provider = window.solflare;
-  if (!provider?.isSolflare) {
-    throw new Error('Solflare wallet not found — install at solflare.com');
-  }
-  await provider.connect();
-  activeProvider = provider;
-  return {
-    provider,
-    publicKey: provider.publicKey.toString(),
-    walletType: 'solflare'
-  };
-}
-
-export async function disconnectSolana() {
-  try {
-    if (activeProvider?.disconnect) await activeProvider.disconnect();
-  } catch (_) { /* ok */ }
-  activeProvider = null;
 }
 
 export function shortAddress(addr) {
@@ -54,96 +21,141 @@ export function shortAddress(addr) {
   return `${addr.slice(0, 4)}…${addr.slice(-4)}`;
 }
 
-function casinoKey(pubkey) {
-  return `mt_casino_${pubkey}`;
+async function extractPublicKey(provider, resp) {
+  for (let i = 0; i < 5; i++) {
+    const pk = resp?.publicKey || provider?.publicKey;
+    if (pk) return typeof pk.toString === 'function' ? pk.toString() : String(pk);
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  return null;
 }
 
-export function getCasinoBalance(pubkey) {
+export async function connectWalletType(type) {
+  let provider = null;
+
+  if (type === 'phantom') {
+    provider = window.phantom?.solana;
+    if (!provider?.isPhantom) {
+      if (/iPhone|Android/i.test(navigator.userAgent)) {
+        window.location.href = `https://phantom.app/ul/browse/${encodeURIComponent(window.location.href)}`;
+        throw new Error('Opening Phantom…');
+      }
+      window.open('https://phantom.app/', '_blank');
+      throw new Error('Phantom not installed');
+    }
+  } else if (type === 'solflare') {
+    provider = window.solflare;
+    if (!provider) {
+      if (/iPhone|Android/i.test(navigator.userAgent)) {
+        window.location.href = `https://solflare.com/ul/browse/${encodeURIComponent(window.location.href)}`;
+        throw new Error('Opening Solflare…');
+      }
+      window.open('https://solflare.com/', '_blank');
+      throw new Error('Solflare not installed');
+    }
+  } else if (type === 'backpack') {
+    provider = window.backpack;
+    if (!provider) {
+      window.open('https://backpack.app/', '_blank');
+      throw new Error('Backpack not installed');
+    }
+  }
+
+  if (!provider) throw new Error('Wallet not found');
+
+  let resp;
+  try {
+    resp = await provider.connect();
+  } catch (_) { /* retry pk */ }
+
+  const publicKey = await extractPublicKey(provider, resp);
+  if (!publicKey) {
+    throw new Error(`Failed to get public key from ${type}. Try again or use Phantom.`);
+  }
+
+  activeProvider = provider;
+  activeType = type;
+
+  if (provider.on) {
+    provider.on('accountChanged', (pk) => {
+      if (!pk) disconnectSolana();
+    });
+    provider.on('disconnect', () => disconnectSolana());
+  }
+
+  return { provider, publicKey, walletType: type };
+}
+
+export async function disconnectSolana() {
+  try {
+    if (activeProvider?.disconnect) await activeProvider.disconnect();
+  } catch (_) { /* ok */ }
+  activeProvider = null;
+  activeType = '';
+}
+
+export async function fetchSolBalance(pubkey) {
+  const { Connection, PublicKey, LAMPORTS_PER_SOL } = await import('https://esm.sh/@solana/web3.js@1.95.4');
+  const conn = new Connection(MEMETORRENT.rpcUrl, 'confirmed');
+  const lamports = await conn.getBalance(new PublicKey(pubkey));
+  return lamports / LAMPORTS_PER_SOL;
+}
+
+export async function fetchWalletMtBalance(pubkey) {
   if (!pubkey) return 0;
   try {
-    const v = localStorage.getItem(casinoKey(pubkey));
-    return v ? Number(v) : 0;
+    const { Connection, PublicKey } = await import('https://esm.sh/@solana/web3.js@1.95.4');
+    const { getAssociatedTokenAddress } = await import('https://esm.sh/@solana/spl-token@0.4.9');
+    const conn = new Connection(MEMETORRENT.rpcUrl, 'confirmed');
+    const owner = new PublicKey(pubkey);
+    const mint = new PublicKey(MEMETORRENT.mtMint);
+    const ata = await getAssociatedTokenAddress(mint, owner);
+    const info = await conn.getParsedAccountInfo(ata);
+    if (info.value && 'parsed' in info.value.data) {
+      return info.value.data.parsed.info.tokenAmount.uiAmount || 0;
+    }
+    return 0;
   } catch {
     return 0;
   }
 }
 
-export function setCasinoBalance(pubkey, amount) {
-  if (!pubkey) return;
-  localStorage.setItem(casinoKey(pubkey), String(Math.max(0, Math.floor(amount))));
-}
+export async function sendMTToTreasury(amount) {
+  if (!activeProvider?.publicKey) throw new Error('Connect wallet first');
 
-export function addCasinoBalance(pubkey, amount) {
-  setCasinoBalance(pubkey, getCasinoBalance(pubkey) + amount);
-}
-
-export async function fetchWalletMtBalance(pubkey) {
-  if (!MEMETORRENT.mtMint || !pubkey) return null;
-  try {
-    const { Connection, PublicKey } = await import('https://esm.sh/@solana/web3.js@1.95.4');
-    const conn = new Connection(MEMETORRENT.rpcUrl, 'confirmed');
-    const accounts = await conn.getParsedTokenAccountsByOwner(
-      new PublicKey(pubkey),
-      { mint: new PublicKey(MEMETORRENT.mtMint) }
-    );
-    let total = 0;
-    for (const { account } of accounts.value) {
-      const info = account.data.parsed?.info;
-      if (info?.tokenAmount?.uiAmount != null) total += info.tokenAmount.uiAmount;
-    }
-    return total;
-  } catch {
-    return null;
-  }
-}
-
-export async function depositMtToCasino(amount) {
-  if (!activeProvider?.publicKey) throw new Error('Connect Phantom or Solflare first');
-  if (!MEMETORRENT.mtMint || !MEMETORRENT.vaultAddress) {
-    throw new Error('$MT deposits not live yet — MemeTorrent mint/vault pending');
-  }
-  if (amount < MEMETORRENT.minDeposit) {
-    throw new Error(`Minimum deposit is ${MEMETORRENT.minDeposit} MT`);
+  const sol = await fetchSolBalance(activeProvider.publicKey.toString());
+  if (sol < MEMETORRENT.minSolForFees) {
+    throw new Error(`Need ~${MEMETORRENT.minSolForFees} SOL for network fees`);
   }
 
-  const {
-    Connection, PublicKey, Transaction
-  } = await import('https://esm.sh/@solana/web3.js@1.95.4');
-  const {
-    getAssociatedTokenAddress, createAssociatedTokenAccountInstruction,
-    createTransferInstruction, getAccount
-  } = await import('https://esm.sh/@solana/spl-token@0.4.9');
+  const { Connection, PublicKey, Transaction } = await import('https://esm.sh/@solana/web3.js@1.95.4');
+  const { getAssociatedTokenAddress, createTransferInstruction } = await import('https://esm.sh/@solana/spl-token@0.4.9');
 
   const conn = new Connection(MEMETORRENT.rpcUrl, 'confirmed');
-  const payer = new PublicKey(activeProvider.publicKey.toString());
+  const user = new PublicKey(activeProvider.publicKey.toString());
   const mint = new PublicKey(MEMETORRENT.mtMint);
-  const vault = new PublicKey(MEMETORRENT.vaultAddress);
-  const rawAmount = BigInt(Math.floor(amount * 10 ** MEMETORRENT.decimals));
+  const treasury = new PublicKey(MEMETORRENT.treasury);
+  const raw = BigInt(Math.floor(amount * 10 ** MEMETORRENT.decimals));
 
-  const fromAta = await getAssociatedTokenAddress(mint, payer);
-  const toAta = await getAssociatedTokenAddress(mint, vault);
+  const userAta = await getAssociatedTokenAddress(mint, user);
+  const treasuryAta = await getAssociatedTokenAddress(mint, treasury);
 
-  const tx = new Transaction();
-  try {
-    await getAccount(conn, toAta);
-  } catch {
-    tx.add(createAssociatedTokenAccountInstruction(payer, toAta, vault, mint));
-  }
-  tx.add(createTransferInstruction(fromAta, toAta, payer, rawAmount));
+  const tx = new Transaction().add(
+    createTransferInstruction(userAta, treasuryAta, user, raw)
+  );
 
   const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash();
   tx.recentBlockhash = blockhash;
-  tx.feePayer = payer;
+  tx.feePayer = user;
 
-  const signed = await activeProvider.signTransaction(tx);
-  const sig = await conn.sendRawTransaction(signed.serialize());
+  const signed = await activeProvider.signAndSendTransaction(tx);
+  const sig = signed.signature || signed;
   await conn.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight });
-
-  const pubkey = payer.toString();
-  addCasinoBalance(pubkey, amount);
-  return { signature: sig, amount, pubkey };
+  return sig;
 }
 
 export function walletInstallUrl(type) {
-  return type === 'phantom' ? 'https://phantom.app/' : 'https://solflare.com/';
+  if (type === 'phantom') return 'https://phantom.app/';
+  if (type === 'solflare') return 'https://solflare.com/';
+  return 'https://backpack.app/';
 }

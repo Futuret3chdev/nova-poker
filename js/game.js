@@ -49,7 +49,10 @@ export class PokerGame {
 
   formatAmt(n) {
     const sym = this.mode.symbol || '₵';
-    if (sym === 'MT') return `${n.toLocaleString()} MT`;
+    if (sym === 'MT' || sym === '$MEMETORRENT') {
+      const v = Number(n);
+      return v < 1 ? `${v.toFixed(2)} MT` : `${v.toLocaleString()} MT`;
+    }
     if (n >= 1000) return `${sym}${(n / 1000).toFixed(1)}k`;
     return `${sym}${n}`;
   }

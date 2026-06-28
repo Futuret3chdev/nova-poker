@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=3">
+  <link rel="stylesheet" href="/css/style.css?v=4">
 </head>
 <body>
   <div id="app">
@@ -53,8 +53,9 @@
 
       <div class="wallet-bar">
         <div class="wallet-stat">
-          <span class="stat-label">Casino $MT</span>
+          <span class="stat-label">$MEMETORRENT</span>
           <span class="stat-value mt" id="hud-mt">0</span>
+          <button type="button" class="btn-refresh" id="btn-refresh-mt" title="Refresh balance">↻</button>
         </div>
         <div class="wallet-stat">
           <span class="stat-label">Free Chips</span>
@@ -64,14 +65,15 @@
           <span class="stat-label">Wins</span>
           <span class="stat-value" id="hud-wins">0</span>
         </div>
-        <button type="button" class="btn-load" id="btn-load-mt" disabled>Load $MT</button>
+        <a class="btn-buy-mt" id="btn-buy-mt" href="#" target="_blank" rel="noopener">Buy $MT</a>
         <button type="button" class="btn-bonus" id="btn-daily">Free Chips</button>
       </div>
 
-      <p class="wallet-addr" id="wallet-address">Phantom or Solflare required for $MT</p>
-      <p class="wallet-note" id="wallet-note">$MT is never given free — connect wallet &amp; load funds to play stakes</p>
+      <p class="wallet-addr" id="wallet-address">Connect Phantom, Solflare or Backpack</p>
+      <p class="wallet-note" id="wallet-note">Same wallet as Lucky Reels — on-chain $MEMETORRENT, no free tokens</p>
 
       <div class="menu-scroll">
+        <div id="menu-games" class="menu-section"></div>
         <div id="menu-modes"></div>
 
         <div class="menu-section">
@@ -182,16 +184,38 @@
         <span>MEMETORRENT $MT</span>
       </footer>
     </section>
+
+    <!-- LUCKY REELS (embedded) -->
+    <section id="reels-screen" class="screen">
+      <header class="game-header">
+        <button type="button" class="btn-ghost" id="btn-reels-back">← Casino Lobby</button>
+        <div class="header-center">
+          <span class="eco-pill">MT ECOSYSTEM</span>
+          <span>Lucky Reels</span>
+        </div>
+        <a class="btn-ghost" id="btn-reels-open" href="https://lucky-reels-eosin.vercel.app" target="_blank" rel="noopener">Open ↗</a>
+      </header>
+      <iframe
+        id="reels-frame"
+        class="reels-frame"
+        src="about:blank"
+        title="Lucky Reels Slots"
+        allow="clipboard-write"
+      ></iframe>
+      <footer class="game-footer">
+        <span>Made by Futuret3ch</span>
+        <span>Lucky Reels · MemeTorrent</span>
+      </footer>
+    </section>
   </div>
 
   <div id="toast" class="toast"></div>
 
-  <!-- Wallet picker -->
   <div id="wallet-modal" class="modal" hidden>
     <div class="modal-backdrop" id="wallet-modal-backdrop"></div>
     <div class="modal-card">
       <h3>Connect Wallet</h3>
-      <p class="modal-desc">$MT stakes require Phantom or Solflare. No free $MT — load your own funds.</p>
+      <p class="modal-desc">Same wallets as Lucky Reels. $MEMETORRENT balance is read live from chain — never given free.</p>
       <button type="button" class="wallet-option phantom" id="btn-phantom">
         <span class="wallet-icon">👻</span>
         <span>Phantom</span>
@@ -200,27 +224,14 @@
         <span class="wallet-icon">🔥</span>
         <span>Solflare</span>
       </button>
+      <button type="button" class="wallet-option backpack" id="btn-backpack">
+        <span class="wallet-icon">🎒</span>
+        <span>Backpack</span>
+      </button>
       <button type="button" class="btn-ghost modal-close" id="btn-wallet-cancel">Cancel</button>
     </div>
   </div>
 
-  <!-- Load $MT -->
-  <div id="load-modal" class="modal" hidden>
-    <div class="modal-backdrop" id="load-modal-backdrop"></div>
-    <div class="modal-card">
-      <h3>Load $MT</h3>
-      <p class="modal-desc">Transfer MemeTorrent $MT from your wallet to the casino. Funds are required to play stakes tables.</p>
-      <p class="load-addr" id="load-wallet-addr"></p>
-      <label class="name-field">
-        <span>Amount to load (MT)</span>
-        <input type="number" id="load-amount" min="100" step="50" value="500" placeholder="Min 100 MT">
-      </label>
-      <p class="load-hint" id="load-hint"></p>
-      <button type="button" class="btn-play" id="btn-confirm-load">Confirm Load</button>
-      <button type="button" class="btn-ghost modal-close" id="btn-load-cancel">Cancel</button>
-    </div>
-  </div>
-
-  <script type="module" src="/js/main.js?v=3"></script>
+  <script type="module" src="/js/main.js?v=4"></script>
 </body>
 </html>

@@ -415,6 +415,28 @@ html, body {
   flex-shrink: 0;
 }
 .avatar-you { background: linear-gradient(135deg, var(--red), var(--red-dark)); }
+.avatar-photo {
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--gold-dim);
+}
+.avatar-you.avatar-photo { border-color: var(--red); }
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+.avatar-lg {
+  width: 88px;
+  height: 88px;
+  font-size: 2rem;
+  border: 3px solid var(--gold);
+}
+.avatar-lg.avatar-photo { border-color: var(--gold); }
+.avatar-preview { width: 120px; height: 120px; }
+.avatar-character-svg { display: block; border-radius: 50%; }
 
 .seat-meta {
   display: flex;
@@ -665,8 +687,9 @@ html, body {
 }
 
 /* ── Menu screen ── */
-#menu-screen, #setup-screen, #multiplayer-screen {
+#menu-screen, #setup-screen, #multiplayer-screen, #profile-screen {
   background: var(--bg);
+  flex-direction: column;
 }
 
 .menu-header {
@@ -1081,4 +1104,165 @@ html, body {
   color: var(--muted);
   text-align: center;
   min-height: 2.5em;
+}
+
+/* Profile & auth */
+.menu-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-profile {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--bg);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-profile:hover { border-color: var(--gold); }
+
+.profile-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.profile-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+}
+.profile-avatar-wrap {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+}
+.profile-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.profile-section h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  margin: 0;
+}
+.profile-desc {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.4;
+}
+.profile-auth-badge {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--gold);
+  font-weight: 600;
+}
+.auth-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.auth-slot {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.auth-telegram { grid-column: 1 / -1; }
+.auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.auth-btn.discord:hover { border-color: #5865f2; }
+.auth-btn.facebook:hover { border-color: #1877f2; }
+.auth-icon { font-size: 1.1rem; }
+.profile-signout { align-self: center; font-size: 0.82rem; }
+.avatar-upload-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.avatar-upload-btn { cursor: pointer; }
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.profile-field input,
+.profile-field select {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.customize-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--swatch);
+  cursor: pointer;
+  padding: 0;
+}
+.swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--gold);
+}
+.profile-save { margin-top: 4px; }
+.setup-avatar-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.setup-profile-link {
+  width: 100%;
+  margin-bottom: 8px;
 }

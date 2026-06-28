@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=9">
+  <link rel="stylesheet" href="/css/style.css?v=10">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -57,7 +57,10 @@
           <span class="eco-pill">MT ECOSYSTEM</span>
           <h2>Casino Lobby</h2>
         </div>
-        <button type="button" class="btn-wallet" id="btn-connect">Connect Wallet</button>
+        <div class="menu-header-actions">
+          <button type="button" class="btn-profile" id="btn-profile" title="Your profile">👤</button>
+          <button type="button" class="btn-wallet" id="btn-connect">Connect Wallet</button>
+        </div>
       </header>
 
       <div class="wallet-bar">
@@ -132,10 +135,13 @@
 
         <p class="setup-warn" id="setup-mt-warn"></p>
 
+        <div class="setup-avatar-preview" id="setup-avatar-preview"></div>
+
         <label class="name-field">
           <span>Screen name</span>
           <input type="text" id="player-name" maxlength="16" placeholder="Your name" value="Player1">
         </label>
+        <button type="button" class="btn-secondary setup-profile-link" id="btn-setup-profile">Customise avatar</button>
 
         <button class="btn-play" id="btn-launch" type="button">Take a Seat</button>
         <button type="button" class="btn-ghost setup-back" id="btn-setup-back">← Back to Lobby</button>
@@ -197,6 +203,92 @@
       </footer>
     </section>
 
+    <!-- PROFILE -->
+    <section id="profile-screen" class="screen">
+      <header class="menu-header">
+        <button type="button" class="btn-ghost" id="btn-profile-back">←</button>
+        <div class="menu-header-center">
+          <span class="eco-pill">YOUR SEAT</span>
+          <h2>Player Profile</h2>
+        </div>
+        <span class="profile-auth-badge" id="profile-auth-badge">Guest</span>
+      </header>
+
+      <div class="profile-scroll">
+        <div class="profile-hero">
+          <div class="profile-avatar-wrap" id="profile-avatar-preview"></div>
+          <p class="profile-hint">Your photo appears on your face at the poker table</p>
+        </div>
+
+        <div class="profile-section">
+          <h3>Sign in</h3>
+          <p class="profile-desc">Link Discord, Telegram, Gmail, or Facebook to save your profile</p>
+          <div class="auth-grid">
+            <div id="google-signin-btn" class="auth-slot"></div>
+            <button type="button" class="auth-btn discord" id="btn-auth-discord">
+              <span class="auth-icon">💬</span> Discord
+            </button>
+            <div id="telegram-signin-btn" class="auth-slot auth-telegram"></div>
+            <button type="button" class="auth-btn facebook" id="btn-auth-facebook">
+              <span class="auth-icon">📘</span> Facebook
+            </button>
+          </div>
+          <button type="button" class="btn-ghost profile-signout" id="btn-auth-signout" hidden>Sign out</button>
+        </div>
+
+        <div class="profile-section">
+          <h3>Your photo</h3>
+          <div class="avatar-upload-row">
+            <label class="btn-secondary avatar-upload-btn">
+              Upload picture
+              <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" hidden>
+            </label>
+            <button type="button" class="btn-ghost" id="btn-avatar-remove">Remove photo</button>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h3>Character style</h3>
+          <p class="profile-desc">Used when no photo is uploaded — or as your table frame</p>
+
+          <label class="profile-field">
+            <span>Display name</span>
+            <input type="text" id="profile-name" maxlength="16" placeholder="Table name">
+          </label>
+
+          <div class="customize-grid">
+            <label class="profile-field">
+              <span>Skin tone</span>
+              <div class="swatch-row" id="skin-swatches"></div>
+            </label>
+            <label class="profile-field">
+              <span>Hair style</span>
+              <select id="profile-hair-style"></select>
+            </label>
+            <label class="profile-field">
+              <span>Hair colour</span>
+              <div class="swatch-row" id="hair-swatches"></div>
+            </label>
+            <label class="profile-field">
+              <span>Seat frame</span>
+              <div class="swatch-row" id="frame-swatches"></div>
+            </label>
+            <label class="profile-field">
+              <span>Accessory</span>
+              <select id="profile-accessory"></select>
+            </label>
+          </div>
+        </div>
+
+        <button type="button" class="btn-play profile-save" id="btn-profile-save">Save &amp; return to lobby</button>
+      </div>
+
+      <footer class="menu-footer">
+        <span>MT ECOSYSTEM</span>
+        <span>Futuret3ch · MemeTorrent</span>
+      </footer>
+    </section>
+
     <!-- LUCKY REELS (embedded) -->
     <section id="reels-screen" class="screen">
       <header class="game-header">
@@ -244,7 +336,7 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=9"></script>
+  <script type="module" src="/js/main.js?v=10"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

@@ -1,14 +1,23 @@
-import { PokerGame } from './game.js?v=9';
-import { PokerUI } from './ui.js?v=9';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=9';
+import { PokerGame } from './game.js?v=10';
+import { PokerUI } from './ui.js?v=10';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=10';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=9';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=9';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=9';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=9';
+} from './wallet.js?v=10';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=10';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=10';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=10';
+import {
+  loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
+  CHARACTER_PRESETS, getDisplayName, isSignedIn
+} from './profile.js?v=10';
+import { renderAvatarHTML } from './avatar.js?v=10';
+import {
+  handleAuthCallback, initGoogleSignIn, signInDiscord, signInFacebook,
+  initTelegramWidget, signOut, getAuthLabel
+} from './auth.js?v=10';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -37,6 +46,7 @@ function setupInstallHint() {
 let game = null;
 let ui = null;
 let wallet = loadWallet();
+let profile = loadProfile();
 let currentMode = null;
 let pendingMode = null;
 
@@ -70,9 +80,12 @@ async function updateWalletUI() {
   if (wallet.walletConnected) wallet = await refreshMtBalance(wallet);
 
   const nameInput = document.getElementById('player-name');
+  const displayName = getDisplayName(profile) || wallet.screenName || 'Player1';
   if (nameInput && !nameInput.matches(':focus')) {
-    nameInput.value = wallet.screenName || 'Player1';
+    nameInput.value = displayName;
   }
+
+  renderSetupAvatarPreview();
 
   document.getElementById('hud-mt')?.replaceChildren(
     document.createTextNode(formatMt(wallet.mtBalance))
@@ -255,9 +268,129 @@ function startMatchmaking(mode) {
   });
 }
 
+function renderSetupAvatarPreview() {
+  const el = document.getElementById('setup-avatar-preview');
+  if (!el) return;
+  const name = getDisplayName(profile);
+  el.innerHTML = renderAvatarHTML(
+    { name, avatarUrl: profile.avatarUrl, character: profile.character, isHuman: true },
+    { size: 'large', preferCharacter: !profile.avatarUrl }
+  );
+}
+
+function renderProfilePreview() {
+  const el = document.getElementById('profile-avatar-preview');
+  if (!el) return;
+  const name = document.getElementById('profile-name')?.value?.trim() || getDisplayName(profile);
+  const character = {
+    skinTone: document.querySelector('#skin-swatches .active')?.dataset.value || profile.character.skinTone,
+    hairStyle: document.getElementById('profile-hair-style')?.value || profile.character.hairStyle,
+    hairColor: document.querySelector('#hair-swatches .active')?.dataset.value || profile.character.hairColor,
+    frameColor: document.querySelector('#frame-swatches .active')?.dataset.value || profile.character.frameColor,
+    accessory: document.getElementById('profile-accessory')?.value || profile.character.accessory
+  };
+  const avatarUrl = profile.avatarUrl;
+  el.innerHTML = renderAvatarHTML(
+    { name, avatarUrl, character, isHuman: true },
+    { size: 'large', preferCharacter: !avatarUrl }
+  );
+}
+
+function buildSwatches(containerId, values, selected, onPick) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = values.map((v) =>
+    `<button type="button" class="swatch ${v === selected ? 'active' : ''}" data-value="${v}" style="--swatch:${v}" aria-label="Colour"></button>`
+  ).join('');
+  el.querySelectorAll('.swatch').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      el.querySelectorAll('.swatch').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      onPick?.(btn.dataset.value);
+      renderProfilePreview();
+    });
+  });
+}
+
+function fillSelect(id, options, selected) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = options.map((o) => {
+    const val = typeof o === 'string' ? o : o.value;
+    const label = typeof o === 'string' ? o : o.label;
+    return `<option value="${val}" ${val === selected ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+}
+
+function openProfileScreen() {
+  profile = loadProfile();
+  document.getElementById('profile-name').value = getDisplayName(profile);
+  fillSelect('profile-hair-style', CHARACTER_PRESETS.hairStyles, profile.character.hairStyle);
+  fillSelect('profile-accessory', CHARACTER_PRESETS.accessories.map((a) => ({
+    value: a,
+    label: a.charAt(0).toUpperCase() + a.slice(1)
+  })), profile.character.accessory);
+
+  buildSwatches('skin-swatches', CHARACTER_PRESETS.skinTones, profile.character.skinTone, () => {});
+  buildSwatches('hair-swatches', CHARACTER_PRESETS.hairColors, profile.character.hairColor, () => {});
+  buildSwatches('frame-swatches', CHARACTER_PRESETS.frames, profile.character.frameColor, () => {});
+
+  const badge = document.getElementById('profile-auth-badge');
+  const signout = document.getElementById('btn-auth-signout');
+  if (badge) badge.textContent = isSignedIn(profile) ? getAuthLabel(profile) : 'Guest';
+  if (signout) signout.hidden = !isSignedIn(profile);
+
+  renderProfilePreview();
+  showScreen('profile');
+
+  initGoogleSignIn(
+    document.getElementById('google-signin-btn'),
+    (p) => { profile = p; syncProfileToWallet(); renderProfileScreen(); toast(`Signed in with ${getAuthLabel(p)}`); },
+    (err) => toast(err.message)
+  );
+  initTelegramWidget(
+    document.getElementById('telegram-signin-btn'),
+    (p) => { profile = p; syncProfileToWallet(); renderProfileScreen(); toast(`Signed in with Telegram`); },
+    (err) => toast(err.message)
+  );
+}
+
+function renderProfileScreen() {
+  profile = loadProfile();
+  document.getElementById('profile-name').value = getDisplayName(profile);
+  const badge = document.getElementById('profile-auth-badge');
+  const signout = document.getElementById('btn-auth-signout');
+  if (badge) badge.textContent = isSignedIn(profile) ? getAuthLabel(profile) : 'Guest';
+  if (signout) signout.hidden = !isSignedIn(profile);
+  renderProfilePreview();
+  updateWalletUI();
+}
+
+function syncProfileToWallet() {
+  wallet.screenName = getDisplayName(profile);
+  saveWallet(wallet);
+}
+
+function saveProfileFromForm() {
+  const name = document.getElementById('profile-name')?.value?.trim() || 'Player1';
+  profile = updateProfile({
+    displayName: name,
+    character: {
+      skinTone: document.querySelector('#skin-swatches .active')?.dataset.value || profile.character.skinTone,
+      hairStyle: document.getElementById('profile-hair-style')?.value || profile.character.hairStyle,
+      hairColor: document.querySelector('#hair-swatches .active')?.dataset.value || profile.character.hairColor,
+      frameColor: document.querySelector('#frame-swatches .active')?.dataset.value || profile.character.frameColor,
+      accessory: document.getElementById('profile-accessory')?.value || profile.character.accessory
+    }
+  });
+  syncProfileToWallet();
+  return profile;
+}
+
 async function launchGame() {
   let mode = pendingMode || TABLE_MODES['free-ai'];
-  const name = document.getElementById('player-name')?.value?.trim() || wallet.screenName || 'Player1';
+  const name = document.getElementById('player-name')?.value?.trim() || getDisplayName(profile) || 'Player1';
+  profile = updateProfile({ displayName: name });
   wallet.screenName = name;
   saveWallet(wallet);
 
@@ -326,7 +459,10 @@ async function launchGame() {
       nextHand: () => game.nextHand()
     });
 
-    game.initTable(name);
+    game.initTable(name, {
+      avatarUrl: profile.avatarUrl,
+      character: profile.character
+    });
     document.getElementById('table-brand').textContent = mode.currency === 'mt' ? '$MT' : 'MT';
   } catch (err) {
     toast(err.message || 'Could not start table');
@@ -380,11 +516,73 @@ async function resumeWalletIfNeeded() {
 }
 
 document.getElementById('btn-enter')?.addEventListener('click', async () => {
+  try {
+    profile = await handleAuthCallback() || loadProfile();
+    syncProfileToWallet();
+  } catch (err) {
+    toast(err.message);
+  }
   await updateWalletUI();
   renderMenu();
   renderRooms();
   showScreen('menu');
 });
+
+document.getElementById('btn-profile')?.addEventListener('click', openProfileScreen);
+document.getElementById('btn-profile-back')?.addEventListener('click', () => showScreen('menu'));
+document.getElementById('btn-setup-profile')?.addEventListener('click', openProfileScreen);
+
+document.getElementById('btn-profile-save')?.addEventListener('click', () => {
+  saveProfileFromForm();
+  toast('Profile saved');
+  showScreen('menu');
+  updateWalletUI();
+});
+
+document.getElementById('avatar-file')?.addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    profile = await uploadAvatarFile(file);
+    renderProfilePreview();
+    toast('Photo uploaded — shows at the table');
+  } catch (err) {
+    toast(err.message);
+  }
+  e.target.value = '';
+});
+
+document.getElementById('btn-avatar-remove')?.addEventListener('click', () => {
+  profile = removeAvatar();
+  renderProfilePreview();
+  toast('Photo removed');
+});
+
+document.getElementById('btn-auth-discord')?.addEventListener('click', () => {
+  try { signInDiscord(); } catch (err) { toast(err.message); }
+});
+
+document.getElementById('btn-auth-facebook')?.addEventListener('click', async () => {
+  try {
+    profile = await signInFacebook(
+      (p) => { profile = p; syncProfileToWallet(); renderProfileScreen(); toast('Signed in with Facebook'); },
+      (err) => toast(err.message)
+    );
+  } catch (err) {
+    toast(err.message);
+  }
+});
+
+document.getElementById('btn-auth-signout')?.addEventListener('click', () => {
+  profile = signOut();
+  renderProfileScreen();
+  toast('Signed out');
+});
+
+['profile-hair-style', 'profile-accessory'].forEach((id) => {
+  document.getElementById(id)?.addEventListener('change', renderProfilePreview);
+});
+document.getElementById('profile-name')?.addEventListener('input', renderProfilePreview);
 
 document.getElementById('btn-launch')?.addEventListener('click', launchGame);
 document.getElementById('btn-setup-back')?.addEventListener('click', () => showScreen('menu'));
@@ -444,6 +642,13 @@ document.getElementById('btn-join-room')?.addEventListener('click', () => {
 document.getElementById('btn-multi-back')?.addEventListener('click', () => showScreen('menu'));
 
 setupInstallHint();
+handleAuthCallback().then((p) => {
+  if (p) {
+    profile = p;
+    syncProfileToWallet();
+    updateWalletUI();
+  }
+}).catch((err) => toast(err.message));
 resumeWalletIfNeeded();
 updateWalletUI();
 renderMenu();

@@ -30,11 +30,17 @@ export class PokerGame {
     this.actedThisRound = new Set();
   }
 
-  initTable(humanName = 'You') {
+  initTable(humanName = 'You', humanProfile = {}) {
     const sym = this.mode.symbol || '₵';
     const botNames = this.opponentNames || BOT_NAMES;
     this.players = [
-      { id: 0, name: humanName, isHuman: true, chips: this.startingChips, hole: [], betThisRound: 0, totalBet: 0, folded: false, allIn: false, isDealer: false, isSB: false, isBB: false },
+      {
+        id: 0, name: humanName, isHuman: true,
+        avatarUrl: humanProfile.avatarUrl || null,
+        character: humanProfile.character || null,
+        chips: this.startingChips, hole: [], betThisRound: 0, totalBet: 0,
+        folded: false, allIn: false, isDealer: false, isSB: false, isBB: false
+      },
       ...botNames.map((name, i) => ({
         id: i + 1, name, isHuman: false, chips: this.startingChips,
         hole: [], betThisRound: 0, totalBet: 0, folded: false, allIn: false,

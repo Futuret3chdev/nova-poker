@@ -1,5 +1,6 @@
 import { cardHTML } from './deck.js';
 import { evaluateHand } from './hand-evaluator.js';
+import { renderAvatarHTML } from './avatar.js';
 
 const SEAT_POSITIONS = [
   { x: 50, y: 72 },
@@ -130,7 +131,7 @@ export class PokerUI {
         ${turnTag}
         <div class="seat-cards">${cards || '<div class="card-slot"></div>'}</div>
         <div class="seat-info">
-          <div class="avatar ${p.isHuman ? 'avatar-you' : ''}">${p.name.charAt(0)}</div>
+          ${renderAvatarHTML(p)}
           <div class="seat-meta">
             <span class="seat-name">${p.name}</span>
             <span class="seat-chips">${this.formatChips(p.chips, state)}</span>

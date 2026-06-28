@@ -764,8 +764,8 @@ html, body {
   .header-center { font-size: 0.82rem; }
 
   .mode-grid { grid-template-columns: 1fr 1fr; }
-  .game-card { flex-basis: calc(100% - 8px); }
-  .game-card-visual { min-height: 48vh; max-height: 58vh; }
+  .game-card { flex-basis: min(94vw, 440px); }
+  .game-card-visual { aspect-ratio: 4 / 5; }
   .game-card-title { font-size: 0.95rem; }
   .menu-header-center h2 { display: none; }
   .wallet-bar { flex-wrap: wrap; gap: 8px; }
@@ -1259,8 +1259,7 @@ html, body {
 }
 
 .game-card {
-  flex: 0 0 calc(100% - 12px);
-  max-width: 420px;
+  flex: 0 0 min(92vw, 440px);
   scroll-snap-align: center;
   position: relative;
   display: flex;
@@ -1285,9 +1284,9 @@ html, body {
 
 .game-card-visual {
   position: relative;
-  aspect-ratio: 3 / 4;
-  min-height: 52vh;
-  max-height: 62vh;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  flex-shrink: 0;
   overflow: hidden;
   background: linear-gradient(145deg, #1a2030, #0d1117);
 }
@@ -1317,15 +1316,17 @@ html, body {
 }
 
 .game-card-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center top;
   display: block;
-  transform: scale(1.02);
+  transform: scale(1.03);
   transition: transform 0.4s ease;
 }
-.game-card:hover .game-card-img { transform: scale(1.08); }
+.game-card:hover .game-card-img { transform: scale(1.1); }
 
 .game-card-fx {
   position: absolute;
@@ -1546,26 +1547,30 @@ html, body {
   z-index: 2000;
   display: flex;
   align-items: stretch;
-  justify-content: center;
+  justify-content: stretch;
 }
 .game-preview-modal[hidden] { display: none !important; }
 
 .preview-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.88);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(10px);
 }
 
 .preview-sheet {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
+  height: 100%;
+  max-width: none;
   display: flex;
   flex-direction: column;
-  padding: max(12px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+  padding:
+    max(10px, env(safe-area-inset-top))
+    max(10px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom))
+    max(10px, env(safe-area-inset-left));
   animation: preview-rise 0.3s ease;
 }
 @keyframes preview-rise {
@@ -1588,17 +1593,25 @@ html, body {
 
 .preview-visual {
   position: relative;
-  flex: 1;
-  min-height: 55vh;
-  border-radius: 16px;
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: 14px;
   overflow: hidden;
-  border: 1px solid rgba(255, 193, 7, 0.25);
+  border: 1px solid rgba(255, 193, 7, 0.3);
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
 }
 .preview-visual img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
+}
+.preview-visual .game-card-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .preview-info {
@@ -1629,7 +1642,8 @@ html, body {
 body.preview-open { overflow: hidden; }
 
 @media (min-width: 700px) {
-  .game-card { flex-basis: min(88%, 400px); }
+  .game-card { flex-basis: min(85vw, 480px); }
+  .game-card-visual { aspect-ratio: 3 / 4; }
 }
 
 .mode-card {

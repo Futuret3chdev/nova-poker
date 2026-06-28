@@ -11,8 +11,9 @@ const SEAT_POSITIONS = [
 ];
 
 export class PokerUI {
-  constructor(root) {
+  constructor(root, mode = {}) {
     this.root = root;
+    this.mode = mode;
     this.raiseAmount = 0;
     this.cacheEls();
   }
@@ -34,20 +35,29 @@ export class PokerUI {
       raiseSlider: document.getElementById('raise-slider'),
       raiseValue: document.getElementById('raise-value'),
       handStrength: document.getElementById('hand-strength'),
-      btnNext: document.getElementById('btn-next-hand')
+      btnNext: document.getElementById('btn-next-hand'),
+      modeBadge: document.getElementById('mode-badge'),
+      walletHud: document.getElementById('wallet-hud')
     };
   }
 
-  formatChips(n) {
-    if (n >= 1000) return `$${(n / 1000).toFixed(1)}k`;
-    return `$${n}`;
+  formatChips(n, state) {
+    const sym = state?.mode?.symbol || this.mode?.symbol || '₵';
+    if (sym === 'MT') return `${Number(n).toLocaleString()} MT`;
+    if (n >= 1000) return `${sym}${(n / 1000).toFixed(1)}k`;
+    return `${sym}${n}`;
   }
 
   render(state) {
+    if (state.mode) this.mode = state.mode;
     this.renderSeats(state);
     this.renderCommunity(state);
-    this.els.pot.textContent = this.formatChips(state.pot);
+    this.els.pot.textContent = this.formatChips(state.pot, state);
     this.els.phase.textContent = this.phaseLabel(state.phase);
+    if (this.els.modeBadge) {
+      this.els.modeBadge.textContent = state.mode?.badge || 'PLAY';
+      this.els.modeBadge.className = `mode-badge badge-${state.mode?.currency || 'free'}`;
+    }
     if (state.lastAction) this.els.message.textContent = state.lastAction;
 
     const human = state.players[0];
@@ -104,7 +114,7 @@ export class PokerUI {
         p.isBB ? '<span class="badge bb">BB</span>' : ''
       ].join('');
 
-      const bet = p.betThisRound > 0 ? `<div class="seat-bet">${this.formatChips(p.betThisRound)}</div>` : '';
+      const bet = p.betThisRound > 0 ? `<div class="seat-bet">${this.formatChips(p.betThisRound, state)}</div>` : '';
       const status = p.allIn ? '<span class="status allin">ALL-IN</span>' : p.folded ? '<span class="status fold">FOLD</span>' : '';
       const handName = state.phase === 'showdown' && !p.folded && p.handName
         ? `<div class="hand-name">${p.handName}</div>` : '';
@@ -115,7 +125,7 @@ export class PokerUI {
           <div class="avatar ${p.isHuman ? 'avatar-you' : ''}">${p.name.charAt(0)}</div>
           <div class="seat-meta">
             <span class="seat-name">${p.name}</span>
-            <span class="seat-chips">${this.formatChips(p.chips)}</span>
+            <span class="seat-chips">${this.formatChips(p.chips, state)}</span>
           </div>
           ${badges}
           ${status}
@@ -149,7 +159,9 @@ export class PokerUI {
 
     this.els.btnCheck.style.display = toCall === 0 ? '' : 'none';
     this.els.btnCall.style.display = toCall > 0 ? '' : 'none';
-    this.els.btnCall.textContent = toCall >= human.chips ? `Call All-In ${this.formatChips(human.chips)}` : `Call ${this.formatChips(toCall)}`;
+    this.els.btnCall.textContent = toCall >= human.chips
+      ? `Call All-In ${this.formatChips(human.chips, state)}`
+      : `Call ${this.formatChips(toCall, state)}`;
 
     const canRaise = human.chips > toCall && maxRaise > minRaise;
     this.els.btnRaise.style.display = canRaise ? '' : 'none';
@@ -164,7 +176,7 @@ export class PokerUI {
       }
       this.raiseAmount = Math.min(Math.max(this.raiseAmount, minRaise), maxRaise);
       this.els.raiseSlider.value = this.raiseAmount;
-      this.els.raiseValue.textContent = this.formatChips(this.raiseAmount);
+      this.els.raiseValue.textContent = this.formatChips(this.raiseAmount, state);
     }
   }
 
@@ -181,7 +193,7 @@ export class PokerUI {
     this.els.btnNext?.addEventListener('click', handlers.nextHand);
     this.els.raiseSlider?.addEventListener('input', (e) => {
       this.raiseAmount = Number(e.target.value);
-      this.els.raiseValue.textContent = this.formatChips(this.raiseAmount);
+      this.els.raiseValue.textContent = this.formatChips(this.raiseAmount, this.mode);
     });
   }
 }

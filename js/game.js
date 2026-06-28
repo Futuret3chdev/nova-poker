@@ -6,11 +6,14 @@ const PHASES = ['preflop', 'flop', 'turn', 'river', 'showdown'];
 
 export class PokerGame {
   constructor(opts = {}) {
+    this.mode = opts.mode || { currency: 'free', symbol: '₵' };
     this.smallBlind = opts.smallBlind || 25;
     this.bigBlind = opts.bigBlind || 50;
     this.startingChips = opts.startingChips || 5000;
     this.onUpdate = opts.onUpdate || (() => {});
     this.onMessage = opts.onMessage || (() => {});
+    this.onHandEnd = opts.onHandEnd || (() => {});
+    this.opponentNames = opts.opponentNames || null;
     this.players = [];
     this.deck = [];
     this.community = [];
@@ -28,17 +31,27 @@ export class PokerGame {
   }
 
   initTable(humanName = 'You') {
+    const sym = this.mode.symbol || '₵';
+    const botNames = this.opponentNames || BOT_NAMES;
     this.players = [
       { id: 0, name: humanName, isHuman: true, chips: this.startingChips, hole: [], betThisRound: 0, totalBet: 0, folded: false, allIn: false, isDealer: false, isSB: false, isBB: false },
-      ...BOT_NAMES.map((name, i) => ({
+      ...botNames.map((name, i) => ({
         id: i + 1, name, isHuman: false, chips: this.startingChips,
         hole: [], betThisRound: 0, totalBet: 0, folded: false, allIn: false,
         isDealer: false, isSB: false, isBB: false
       }))
     ];
     this.dealerIndex = 0;
-    this.onMessage('Welcome to the table — $5,000 buy-in');
+    const label = this.mode.multiplayer ? 'Live table' : 'AI table';
+    this.onMessage(`${label} — ${this.formatAmt(this.startingChips)} buy-in`);
     this.startHand();
+  }
+
+  formatAmt(n) {
+    const sym = this.mode.symbol || '₵';
+    if (sym === 'MT') return `${n.toLocaleString()} MT`;
+    if (n >= 1000) return `${sym}${(n / 1000).toFixed(1)}k`;
+    return `${sym}${n}`;
   }
 
   activePlayers() {
@@ -175,7 +188,7 @@ export class PokerGame {
       p.totalBet += pay;
       this.pot += pay;
       if (p.chips === 0) p.allIn = true;
-      msg = `${p.name} calls $${pay}`;
+      msg = `${p.name} calls ${this.formatAmt(pay)}`;
     } else if (action === 'raise' || action === 'allin') {
       let target = action === 'allin' ? p.betThisRound + p.chips : raiseTo;
       target = Math.min(target, p.betThisRound + p.chips);
@@ -191,7 +204,7 @@ export class PokerGame {
       this.pot += add;
       this.currentBet = Math.max(this.currentBet, target);
       if (p.chips === 0) p.allIn = true;
-      msg = action === 'allin' ? `${p.name} is ALL-IN $${add}` : `${p.name} raises to $${target}`;
+      msg = action === 'allin' ? `${p.name} is ALL-IN ${this.formatAmt(add)}` : `${p.name} raises to ${this.formatAmt(target)}`;
     }
 
     this.actedThisRound.add(playerIdx);
@@ -298,12 +311,15 @@ export class PokerGame {
   }
 
   awardPot(winners) {
-    const share = Math.floor(this.pot / winners.length);
+    const totalPot = this.pot;
+    const share = Math.floor(totalPot / winners.length);
     const names = winners.map((w) => w.name).join(', ');
     const handInfo = winners[0].handName ? ` with ${winners[0].handName}` : '';
     winners.forEach((w) => { w.chips += share; });
     this.winners = winners.map((w) => w.id);
-    this.onMessage(`${names} wins $${this.pot}${handInfo}`);
+    const humanWon = winners.some((w) => w.isHuman);
+    this.onMessage(`${names} wins ${this.formatAmt(totalPot)}${handInfo}`);
+    this.onHandEnd({ winners, pot: totalPot, humanWon, humanChips: this.players[0]?.chips || 0 });
     this.pot = 0;
     this.phase = 'showdown';
     this.dealerIndex = (this.dealerIndex + 1) % this.players.length;
@@ -362,7 +378,8 @@ export class PokerGame {
       lastAction: this.lastAction,
       humanTurn: this.humanTurn(),
       smallBlind: this.smallBlind,
-      bigBlind: this.bigBlind
+      bigBlind: this.bigBlind,
+      mode: this.mode
     };
   }
 }

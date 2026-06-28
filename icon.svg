@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#0d1117"/>
-  <circle cx="64" cy="64" r="44" fill="#1a5c38" stroke="#8b6914" stroke-width="6"/>
-  <text x="64" y="58" text-anchor="middle" fill="#ffc107" font-size="28" font-family="sans-serif" font-weight="bold">★</text>
-  <text x="64" y="82" text-anchor="middle" fill="#fff" font-size="14" font-family="sans-serif" font-weight="bold">NOVA</text>
+  <circle cx="64" cy="64" r="44" fill="#1a5c38" stroke="#8b6914" stroke-width="5"/>
+  <text x="64" y="52" text-anchor="middle" fill="#b388ff" font-size="14" font-family="sans-serif" font-weight="bold">MT</text>
+  <text x="64" y="72" text-anchor="middle" fill="#ffc107" font-size="22" font-family="sans-serif">★</text>
+  <text x="64" y="92" text-anchor="middle" fill="#fff" font-size="10" font-family="sans-serif" font-weight="bold">ECOSYSTEM</text>
 </svg>

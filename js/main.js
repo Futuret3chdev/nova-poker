@@ -1,23 +1,23 @@
-import { PokerGame } from './game.js?v=15';
-import { PokerUI } from './ui.js?v=15';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=15';
+import { PokerGame } from './game.js?v=16';
+import { PokerUI } from './ui.js?v=16';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=16';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=15';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=15';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=15';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=15';
+} from './wallet.js?v=16';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=16';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=16';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=16';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=15';
-import { renderAvatarHTML } from './avatar.js?v=15';
+} from './profile.js?v=16';
+import { renderAvatarHTML } from './avatar.js?v=16';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=15';
+} from './auth.js?v=16';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches

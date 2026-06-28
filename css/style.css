@@ -257,8 +257,8 @@ html, body {
 }
 
 .poker-table {
-  width: min(100%, 620px);
-  aspect-ratio: 1.55 / 1;
+  width: min(100%, 680px);
+  aspect-ratio: 1.72 / 1;
   max-height: 100%;
   position: relative;
   pointer-events: none;
@@ -346,14 +346,15 @@ html, body {
 
 .seat {
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0.92);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   z-index: 3;
   transition: opacity 0.2s;
   pointer-events: auto;
+  max-width: 88px;
 }
 
 .turn-tag {
@@ -384,11 +385,11 @@ html, body {
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
 }
 .seat-portrait .avatar-seat {
-  width: 56px;
-  height: 56px;
-  font-size: 1.1rem;
-  border: 3px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4);
+  width: 40px;
+  height: 40px;
+  font-size: 0.9rem;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
 }
 .seat.human .seat-portrait .avatar-seat {
   border-color: var(--red);
@@ -414,12 +415,13 @@ html, body {
 .seat-info {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: rgba(13, 17, 23, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 4px 10px 4px 4px;
-  min-width: 100px;
+  border-radius: 20px;
+  padding: 3px 8px;
+  min-width: 0;
+  max-width: 88px;
 }
 
 .avatar {
@@ -463,8 +465,15 @@ html, body {
   flex-direction: column;
   line-height: 1.2;
 }
-.seat-name { font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
-.seat-chips { font-size: 0.68rem; color: var(--gold); }
+.seat-name {
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 72px;
+}
+.seat-chips { font-size: 0.6rem; color: var(--gold); }
 
 .badge {
   font-size: 0.55rem;
@@ -628,15 +637,27 @@ html, body {
 /* ── Mobile ── */
 @media (max-width: 600px) {
   :root {
-    --card-w: 34px;
+    --card-w: 30px;
   }
 
-  .seat-info { min-width: 84px; padding: 3px 8px 3px 3px; }
-  .avatar { width: 24px; height: 24px; font-size: 0.65rem; }
-  .seat-name { font-size: 0.65rem; }
-  .seat-chips { font-size: 0.6rem; }
+  .seat {
+    transform: translate(-50%, -50%) scale(0.78);
+    max-width: 72px;
+  }
 
-  .table-wrap { max-height: calc(100dvh - 300px); }
+  .seat-portrait .avatar-seat {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+
+  .seat-info { padding: 2px 6px; max-width: 72px; }
+  .avatar { width: 24px; height: 24px; font-size: 0.65rem; }
+  .seat-name { font-size: 0.58rem; max-width: 58px; }
+  .seat-chips { font-size: 0.55rem; }
+  .turn-tag { font-size: 0.52rem; padding: 1px 5px; }
+
+  .table-wrap { max-height: calc(100dvh - 300px); padding: 4px 6px 2px; }
 
   .action-panel { gap: 6px; }
   .act { padding: 10px 12px; font-size: 0.82rem; min-width: 68px; }

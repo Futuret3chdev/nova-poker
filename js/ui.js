@@ -2,13 +2,14 @@ import { cardHTML } from './deck.js';
 import { evaluateHand } from './hand-evaluator.js';
 import { renderAvatarHTML } from './avatar.js';
 
+// Seats on the table rim — spread wide to avoid overlap
 const SEAT_POSITIONS = [
-  { x: 50, y: 72 },
-  { x: 12, y: 58 },
-  { x: 8, y: 30 },
-  { x: 50, y: 10 },
-  { x: 92, y: 30 },
-  { x: 88, y: 58 }
+  { x: 50, y: 82 },  // 0 human — bottom
+  { x: 6, y: 68 },   // 1 left lower
+  { x: 4, y: 34 },   // 2 left upper
+  { x: 50, y: 6 },   // 3 top
+  { x: 96, y: 34 },  // 4 right upper
+  { x: 94, y: 68 }   // 5 right lower
 ];
 
 export class PokerUI {

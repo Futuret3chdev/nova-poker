@@ -52,7 +52,7 @@ export function renderCharacterSvg(character, size = 48) {
 function avatarSizePx(size) {
   if (size === 'large') return 96;
   if (size === 'preview') return 120;
-  if (size === 'seat') return 56;
+  if (size === 'seat') return 40;
   return 48;
 }
 

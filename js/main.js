@@ -1,24 +1,24 @@
-import { PokerGame } from './game.js?v=21';
-import { PokerUI } from './ui.js?v=21';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=21';
-import { artForGame } from './game-art.js?v=21';
+import { PokerGame } from './game.js?v=22';
+import { PokerUI } from './ui.js?v=22';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=22';
+import { artForGame } from './game-art.js?v=22';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=21';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=21';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=21';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=21';
+} from './wallet.js?v=22';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=22';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=22';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=22';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=21';
-import { renderAvatarHTML } from './avatar.js?v=21';
+} from './profile.js?v=22';
+import { renderAvatarHTML } from './avatar.js?v=22';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=21';
+} from './auth.js?v=22';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -121,19 +121,50 @@ async function updateWalletUI() {
   const bonusBtn = document.getElementById('btn-daily');
   const today = new Date().toISOString().slice(0, 10);
   if (bonusBtn) bonusBtn.disabled = wallet.lastDailyBonus === today;
+
+  const summary = document.getElementById('wallet-toggle-summary');
+  if (summary) {
+    summary.textContent = `₵${wallet.freeChips.toLocaleString()} · ${formatMt(wallet.mtBalance)} MT`;
+  }
+}
+
+function showLobbyToast(msg) {
+  const el = document.getElementById('lobby-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(showLobbyToast._t);
+  showLobbyToast._t = setTimeout(() => { el.hidden = true; }, 2800);
 }
 
 function showComingSoonToast(title) {
-  const note = document.getElementById('wallet-note');
-  if (!note) return;
-  const prev = note.textContent;
-  note.textContent = `${title} — coming soon to Nova Mirage`;
-  note.style.color = 'var(--gold)';
-  clearTimeout(showComingSoonToast._t);
-  showComingSoonToast._t = setTimeout(() => {
-    note.textContent = prev;
-    note.style.color = '';
-  }, 2800);
+  showLobbyToast(`${title} — coming soon to Nova Mirage`);
+}
+
+let previewAction = null;
+
+function openGamePreview({ title, desc, stakes, image, fx, onPlay }) {
+  const modal = document.getElementById('game-preview-modal');
+  const visual = document.getElementById('preview-visual');
+  if (!modal || !visual) return;
+
+  document.getElementById('preview-title').textContent = title;
+  document.getElementById('preview-desc').textContent = desc;
+  document.getElementById('preview-stakes').textContent = stakes;
+  visual.className = `preview-visual${fx ? ` fx-${fx}` : ''}`;
+  visual.innerHTML = image
+    ? `<img src="${image}" alt=""><div class="game-card-fx fx-glow"></div><div class="game-card-fx fx-embers"></div><div class="game-card-fx fx-shimmer"></div>`
+    : '';
+  previewAction = onPlay;
+  modal.hidden = false;
+  document.body.classList.add('preview-open');
+}
+
+function closeGamePreview() {
+  const modal = document.getElementById('game-preview-modal');
+  if (modal) modal.hidden = true;
+  document.body.classList.remove('preview-open');
+  previewAction = null;
 }
 
 function renderGameCard(game, sectionId) {
@@ -162,6 +193,11 @@ function renderGameCard(game, sectionId) {
   const badge = data.badge || (live ? 'LIVE' : 'SOON');
   const imgSrc = art.image || '';
 
+  const playAction = () => {
+    if (mode) selectMode(mode);
+    else if (game.external) openLuckyReels();
+  };
+
   card.innerHTML = `
     <div class="game-card-visual">
       ${imgSrc ? `<img class="game-card-img" src="${imgSrc}" alt="" loading="lazy" decoding="async">` : ''}
@@ -170,6 +206,7 @@ function renderGameCard(game, sectionId) {
       <div class="game-card-fx fx-shimmer" aria-hidden="true"></div>
       <div class="game-card-fx fx-sparks" aria-hidden="true"></div>
       <span class="game-card-badge">${badge}</span>
+      <button type="button" class="game-card-expand" aria-label="Fullscreen preview">⛶</button>
     </div>
     <div class="game-card-info">
       <h4 class="game-card-title">${data.title}</h4>
@@ -178,16 +215,71 @@ function renderGameCard(game, sectionId) {
     </div>
   `;
 
-  if (live) {
-    card.addEventListener('click', () => {
-      if (mode) selectMode(mode);
-      else if (game.external) openLuckyReels();
+  card.querySelector('.game-card-expand')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openGamePreview({
+      title: data.title,
+      desc: data.subtitle,
+      stakes,
+      image: imgSrc,
+      fx: art.fx,
+      onPlay: live ? playAction : () => showComingSoonToast(data.title)
     });
-  } else {
-    card.addEventListener('click', () => showComingSoonToast(data.title));
-  }
+  });
+
+  card.addEventListener('click', () => {
+    if (live) playAction();
+    else showComingSoonToast(data.title);
+  });
 
   return card;
+}
+
+function bindCarousel(wrap, carousel) {
+  const prev = wrap.querySelector('.carousel-prev');
+  const next = wrap.querySelector('.carousel-next');
+  const counter = wrap.querySelector('.carousel-count');
+  const cards = () => [...carousel.querySelectorAll('.game-card')];
+
+  function currentIndex() {
+    const list = cards();
+    if (!list.length) return 0;
+    const center = carousel.scrollLeft + carousel.clientWidth / 2;
+    let idx = 0;
+    let min = Infinity;
+    list.forEach((c, i) => {
+      const cardCenter = c.offsetLeft + c.offsetWidth / 2;
+      const dist = Math.abs(cardCenter - center);
+      if (dist < min) { min = dist; idx = i; }
+    });
+    return idx;
+  }
+
+  function updateCounter(idx) {
+    const total = cards().length;
+    if (counter) counter.textContent = `${idx + 1} / ${total}`;
+    if (prev) prev.disabled = idx <= 0;
+    if (next) next.disabled = idx >= total - 1;
+  }
+
+  function goTo(idx, dir) {
+    const list = cards();
+    idx = Math.max(0, Math.min(list.length - 1, idx));
+    carousel.classList.remove('slide-left', 'slide-right');
+    void carousel.offsetWidth;
+    carousel.classList.add(dir < 0 ? 'slide-left' : 'slide-right');
+    list[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    updateCounter(idx);
+    setTimeout(() => carousel.classList.remove('slide-left', 'slide-right'), 450);
+  }
+
+  prev?.addEventListener('click', () => goTo(currentIndex() - 1, -1));
+  next?.addEventListener('click', () => goTo(currentIndex() + 1, 1));
+  carousel.addEventListener('scroll', () => {
+    clearTimeout(bindCarousel._scrollT);
+    bindCarousel._scrollT = setTimeout(() => updateCounter(currentIndex()), 80);
+  }, { passive: true });
+  updateCounter(0);
 }
 
 function openLuckyReels() {
@@ -210,7 +302,15 @@ function renderMenu() {
         <h3>${section.title}</h3>
         <p class="section-sub">${section.subtitle}</p>
       </div>
+      <div class="carousel-wrap">
+        <div class="carousel-nav">
+          <button type="button" class="carousel-btn carousel-prev" aria-label="Previous game">←</button>
+          <span class="carousel-count">1 / ${section.games.length}</span>
+          <button type="button" class="carousel-btn carousel-next" aria-label="Next game">→</button>
+        </div>
+      </div>
     `;
+    const wrap = sec.querySelector('.carousel-wrap');
     const grid = document.createElement('div');
     grid.className = 'game-carousel';
 
@@ -218,7 +318,8 @@ function renderMenu() {
       grid.appendChild(renderGameCard(game, section.id));
     });
 
-    sec.appendChild(grid);
+    wrap.appendChild(grid);
+    bindCarousel(wrap, grid);
     container.appendChild(sec);
   });
 }
@@ -584,6 +685,24 @@ async function resumeWalletIfNeeded() {
     } catch (_) { /* retry */ }
   }
 }
+
+document.getElementById('btn-wallet-toggle')?.addEventListener('click', () => {
+  const panel = document.getElementById('wallet-panel');
+  const btn = document.getElementById('btn-wallet-toggle');
+  if (!panel || !btn) return;
+  const open = panel.hidden;
+  panel.hidden = !open;
+  btn.setAttribute('aria-expanded', String(open));
+  btn.classList.toggle('open', open);
+});
+
+document.getElementById('preview-close')?.addEventListener('click', closeGamePreview);
+document.getElementById('preview-backdrop')?.addEventListener('click', closeGamePreview);
+document.getElementById('preview-play')?.addEventListener('click', () => {
+  const action = previewAction;
+  closeGamePreview();
+  if (action) action();
+});
 
 document.getElementById('btn-enter')?.addEventListener('click', async () => {
   try {

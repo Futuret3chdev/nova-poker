@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=21">
+  <link rel="stylesheet" href="/css/style.css?v=22">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -78,26 +78,35 @@
         </div>
       </header>
 
-      <div class="wallet-bar">
-        <div class="wallet-stat">
-          <span class="stat-label">$MEMETORRENT</span>
-          <span class="stat-value mt" id="hud-mt">0</span>
-          <button type="button" class="btn-refresh" id="btn-refresh-mt" title="Refresh balance">↻</button>
+      <button type="button" class="wallet-toggle" id="btn-wallet-toggle" aria-expanded="false" aria-controls="wallet-panel">
+        <span class="wallet-toggle-label">Balance</span>
+        <span class="wallet-toggle-summary" id="wallet-toggle-summary">₵10,000 · 0 MT</span>
+        <span class="wallet-toggle-chevron" aria-hidden="true">▾</span>
+      </button>
+
+      <div class="wallet-panel" id="wallet-panel" hidden>
+        <div class="wallet-bar">
+          <div class="wallet-stat">
+            <span class="stat-label">$MEMETORRENT</span>
+            <span class="stat-value mt" id="hud-mt">0</span>
+            <button type="button" class="btn-refresh" id="btn-refresh-mt" title="Refresh balance">↻</button>
+          </div>
+          <div class="wallet-stat">
+            <span class="stat-label">Free Chips</span>
+            <span class="stat-value" id="hud-chips">10,000</span>
+          </div>
+          <div class="wallet-stat">
+            <span class="stat-label">Wins</span>
+            <span class="stat-value" id="hud-wins">0</span>
+          </div>
+          <a class="btn-buy-mt" id="btn-buy-mt" href="#" target="_blank" rel="noopener">Buy $MT</a>
+          <button type="button" class="btn-bonus" id="btn-daily">Free Chips</button>
         </div>
-        <div class="wallet-stat">
-          <span class="stat-label">Free Chips</span>
-          <span class="stat-value" id="hud-chips">10,000</span>
-        </div>
-        <div class="wallet-stat">
-          <span class="stat-label">Wins</span>
-          <span class="stat-value" id="hud-wins">0</span>
-        </div>
-        <a class="btn-buy-mt" id="btn-buy-mt" href="#" target="_blank" rel="noopener">Buy $MT</a>
-        <button type="button" class="btn-bonus" id="btn-daily">Free Chips</button>
+        <p class="wallet-addr" id="wallet-address">Connect Phantom, Solflare or Backpack</p>
+        <p class="wallet-note" id="wallet-note">Same wallet as Lucky Reels — on-chain $MEMETORRENT, no free tokens</p>
       </div>
 
-      <p class="wallet-addr" id="wallet-address">Connect Phantom, Solflare or Backpack</p>
-      <p class="wallet-note" id="wallet-note">Same wallet as Lucky Reels — on-chain $MEMETORRENT, no free tokens</p>
+      <p class="lobby-toast" id="lobby-toast" hidden></p>
 
       <div class="menu-scroll">
         <div id="menu-sections"></div>
@@ -115,11 +124,22 @@
         </div>
       </div>
 
-      <footer class="menu-footer">
-        <span>Made by Futuret3ch</span>
-        <span>MEMETORRENT</span>
-      </footer>
     </section>
+
+    <!-- GAME FULLSCREEN PREVIEW -->
+    <div id="game-preview-modal" class="game-preview-modal" hidden>
+      <div class="preview-backdrop" id="preview-backdrop"></div>
+      <div class="preview-sheet">
+        <button type="button" class="preview-close" id="preview-close" aria-label="Close">✕</button>
+        <div class="preview-visual" id="preview-visual"></div>
+        <div class="preview-info">
+          <h3 id="preview-title"></h3>
+          <p id="preview-desc"></p>
+          <span id="preview-stakes" class="preview-stakes"></span>
+        </div>
+        <button type="button" class="btn-play preview-play" id="preview-play">Play Now</button>
+      </div>
+    </div>
 
     <!-- MATCHMAKING -->
     <section id="multiplayer-screen" class="screen">
@@ -376,7 +396,7 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=21"></script>
+  <script type="module" src="/js/main.js?v=22"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

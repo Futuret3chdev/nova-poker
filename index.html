@@ -17,7 +17,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=22">
+  <link rel="stylesheet" href="/css/style.css?v=23">
+  <link rel="stylesheet" href="/css/roulette.css?v=23">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -349,6 +350,40 @@
       </footer>
     </section>
 
+    <!-- ROULETTE -->
+    <section id="roulette-screen" class="screen">
+      <header class="game-header">
+        <button type="button" class="btn-ghost" id="btn-roulette-back">← Lobby</button>
+        <div class="header-center">
+          <span class="eco-pill">NOVA MIRAGE</span>
+          <span>Roulette</span>
+        </div>
+        <span class="roulette-balance" id="roulette-chips">₵10,000</span>
+      </header>
+
+      <div class="roulette-stage">
+        <div class="roulette-pointer" aria-hidden="true"></div>
+        <div class="roulette-wheel-wrap">
+          <div class="roulette-wheel" id="roulette-wheel"></div>
+        </div>
+        <div class="roulette-result" id="roulette-result"></div>
+        <p class="roulette-message" id="roulette-message">Place your bets</p>
+      </div>
+
+      <div class="roulette-panel">
+        <div class="chip-select" id="chip-select"></div>
+        <div class="roulette-quick-bets" id="roulette-quick-bets"></div>
+        <div class="roulette-table-wrap">
+          <div class="roulette-table" id="roulette-table"></div>
+        </div>
+        <p class="roulette-bets-summary" id="roulette-bets-summary">Tap the table to place bets</p>
+        <div class="roulette-actions">
+          <button type="button" class="btn-secondary" id="btn-roulette-clear">Clear Bets</button>
+          <button type="button" class="btn-play btn-roulette-spin" id="btn-roulette-spin">Spin Wheel</button>
+        </div>
+      </div>
+    </section>
+
     <!-- LUCKY REELS (embedded) -->
     <section id="reels-screen" class="screen">
       <header class="game-header">
@@ -396,7 +431,7 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=22"></script>
+  <script type="module" src="/js/main.js?v=23"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

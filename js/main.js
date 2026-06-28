@@ -1,24 +1,25 @@
-import { PokerGame } from './game.js?v=22';
-import { PokerUI } from './ui.js?v=22';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=22';
-import { artForGame } from './game-art.js?v=22';
+import { PokerGame } from './game.js?v=23';
+import { PokerUI } from './ui.js?v=23';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=23';
+import { artForGame } from './game-art.js?v=23';
+import { RouletteUI } from './roulette-ui.js?v=23';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
-  refreshMtBalance, shortAddress
-} from './wallet.js?v=22';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=22';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=22';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=22';
+  refreshMtBalance, shortAddress, adjustFreeChips
+} from './wallet.js?v=23';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=23';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=23';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=23';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=22';
-import { renderAvatarHTML } from './avatar.js?v=22';
+} from './profile.js?v=23';
+import { renderAvatarHTML } from './avatar.js?v=23';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=22';
+} from './auth.js?v=23';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -46,6 +47,7 @@ function setupInstallHint() {
 
 let game = null;
 let ui = null;
+let rouletteUI = null;
 let wallet = loadWallet();
 let profile = loadProfile();
 let currentMode = null;
@@ -188,7 +190,9 @@ function renderGameCard(game, sectionId) {
     ? `Blinds ${mode.smallBlind}/${mode.bigBlind} ${mode.symbol === '$MEMETORRENT' ? 'MT' : mode.symbol}`
     : live && game.external
       ? 'Live on-chain · $MT'
-      : 'Opening soon';
+      : live && game.game === 'roulette'
+        ? 'Free chips · European wheel'
+        : 'Opening soon';
 
   const badge = data.badge || (live ? 'LIVE' : 'SOON');
   const imgSrc = art.image || '';
@@ -196,6 +200,7 @@ function renderGameCard(game, sectionId) {
   const playAction = () => {
     if (mode) selectMode(mode);
     else if (game.external) openLuckyReels();
+    else if (game.game === 'roulette') openRoulette();
   };
 
   card.innerHTML = `
@@ -287,6 +292,23 @@ function openLuckyReels() {
   if (frame) frame.src = LUCKY_REELS_URL;
   document.getElementById('btn-reels-open')?.setAttribute('href', LUCKY_REELS_URL);
   showScreen('reels');
+}
+
+function openRoulette() {
+  stopRoulette();
+  rouletteUI = new RouletteUI({
+    getBalance: () => wallet.freeChips,
+    onBalanceChange: (delta) => {
+      wallet = adjustFreeChips(wallet, delta);
+      updateWalletUI();
+    }
+  });
+  showScreen('roulette');
+}
+
+function stopRoulette() {
+  rouletteUI?.destroy();
+  rouletteUI = null;
 }
 
 function renderMenu() {
@@ -820,6 +842,11 @@ document.getElementById('btn-lobby')?.addEventListener('click', stopGame);
 document.getElementById('btn-menu-back')?.addEventListener('click', () => showScreen('title'));
 document.getElementById('btn-reels-back')?.addEventListener('click', () => {
   document.getElementById('reels-frame')?.setAttribute('src', 'about:blank');
+  showScreen('menu');
+});
+
+document.getElementById('btn-roulette-back')?.addEventListener('click', () => {
+  stopRoulette();
   showScreen('menu');
 });
 

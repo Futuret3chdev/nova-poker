@@ -1,7 +1,7 @@
 import {
   connectWalletType, disconnectSolana,
   fetchWalletMtBalance, fetchSolBalance, shortAddress
-} from './solana-wallet.js?v=22';
+} from './solana-wallet.js?v=23';
 
 const STORAGE_KEY = 'mt-poker-wallet';
 
@@ -100,6 +100,13 @@ export function creditWinnings(wallet, mode, _amount, won) {
   const w = { ...wallet };
   w.handsPlayed += 1;
   if (won) w.handsWon += 1;
+  saveWallet(w);
+  return w;
+}
+
+export function adjustFreeChips(wallet, delta) {
+  const w = { ...wallet };
+  w.freeChips = Math.max(0, w.freeChips + delta);
   saveWallet(w);
   return w;
 }

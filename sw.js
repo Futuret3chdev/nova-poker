@@ -1,9 +1,10 @@
-const CACHE = 'mt-poker-v22';
+const CACHE = 'mt-poker-v23';
 const SHELL = [
   '/',
   '/index.html',
   '/auth/callback.html',
   '/css/style.css',
+  '/css/roulette.css',
   '/js/main.js',
   '/manifest.json',
   '/apple-touch-icon.png',

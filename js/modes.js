@@ -169,7 +169,7 @@ export const CASINO_GAME_SECTIONS = [
     subtitle: 'More games — opening soon on Nova Mirage',
     games: [
       { id: 'blackjack', title: 'Blackjack', subtitle: 'Beat the dealer to 21', icon: '🃏', badge: 'SOON', status: 'soon' },
-      { id: 'roulette', title: 'Roulette', subtitle: 'Spin the wheel of fortune', icon: '🎡', badge: 'SOON', status: 'soon' },
+      { id: 'roulette', title: 'Roulette', subtitle: 'European wheel — free chips', icon: '🎡', badge: 'LIVE', status: 'live', game: 'roulette' },
       { id: 'baccarat', title: 'Baccarat', subtitle: 'Player vs banker elegance', icon: '🂡', badge: 'SOON', status: 'soon' },
       { id: 'craps', title: 'Craps', subtitle: 'Roll the dice on the pass line', icon: '🎲', badge: 'SOON', status: 'soon' },
       { id: 'video-poker', title: 'Video Poker', subtitle: 'Jacks or better multi-hand', icon: '📺', badge: 'SOON', status: 'soon' },

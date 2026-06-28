@@ -1,25 +1,26 @@
-import { PokerGame } from './game.js?v=24';
-import { PokerUI } from './ui.js?v=24';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=24';
-import { artForGame } from './game-art.js?v=24';
-import { RouletteUI } from './roulette-ui.js?v=24';
+import { PokerGame } from './game.js?v=25';
+import { PokerUI } from './ui.js?v=25';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=25';
+import { artForGame } from './game-art.js?v=25';
+import { RouletteUI } from './roulette-ui.js?v=25';
+import { casinoSound, unlockAudio } from './sounds.js?v=25';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress, adjustFreeChips
-} from './wallet.js?v=24';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=24';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=24';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=24';
+} from './wallet.js?v=25';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=25';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=25';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=25';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=24';
-import { renderAvatarHTML } from './avatar.js?v=24';
+} from './profile.js?v=25';
+import { renderAvatarHTML } from './avatar.js?v=25';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=24';
+} from './auth.js?v=25';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -48,6 +49,7 @@ function setupInstallHint() {
 let game = null;
 let ui = null;
 let rouletteUI = null;
+let pokerWasHumanTurn = false;
 let wallet = loadWallet();
 let profile = loadProfile();
 let currentMode = null;
@@ -295,6 +297,7 @@ function openLuckyReels() {
 }
 
 function openRoulette() {
+  unlockAudio();
   stopRoulette();
   rouletteUI = new RouletteUI({
     getBalance: () => wallet.freeChips,
@@ -615,6 +618,8 @@ async function launchGame() {
     }
 
     currentMode = mode;
+    unlockAudio();
+    pokerWasHumanTurn = false;
     showScreen('game');
     ui = new PokerUI(document.getElementById('game-screen'), mode);
 
@@ -632,25 +637,32 @@ async function launchGame() {
           const sym = mode.symbol === '$MEMETORRENT' ? 'MT' : mode.symbol;
           hud.textContent = human ? `${human.chips} ${sym}` : '';
         }
+        if (state.humanTurn && !pokerWasHumanTurn) casinoSound.yourTurn();
+        pokerWasHumanTurn = !!state.humanTurn;
       },
       onMessage: (msg) => {
         const el = document.getElementById('game-message');
         if (el) el.textContent = msg;
+        if (/flop|turn|river|Hand #/i.test(msg)) casinoSound.deal();
       },
       onHandEnd: ({ humanWon }) => {
         wallet = creditWinnings(wallet, mode, 0, humanWon);
         updateWalletUI();
+        if (humanWon) casinoSound.win();
+        else casinoSound.lose();
       }
     });
 
     ui.bindActions({
-      fold: () => game.humanFold(),
-      check: () => game.humanCheck(),
-      call: () => game.humanCall(),
-      raise: () => game.humanRaise(ui.getRaiseAmount()),
-      allin: () => game.humanAllIn(),
-      nextHand: () => game.nextHand()
+      fold: () => { casinoSound.fold(); game.humanFold(); },
+      check: () => { casinoSound.call(); game.humanCheck(); },
+      call: () => { casinoSound.call(); game.humanCall(); },
+      raise: () => { casinoSound.raise(); game.humanRaise(ui.getRaiseAmount()); },
+      allin: () => { casinoSound.raise(); game.humanAllIn(); },
+      nextHand: () => { casinoSound.deal(); game.nextHand(); }
     });
+
+    casinoSound.deal();
 
     game.initTable(name, {
       avatarUrl: profile.avatarUrl,
@@ -726,7 +738,11 @@ document.getElementById('preview-play')?.addEventListener('click', () => {
   if (action) action();
 });
 
+document.addEventListener('click', () => unlockAudio(), { once: true, capture: true });
+
 document.getElementById('btn-enter')?.addEventListener('click', async () => {
+  unlockAudio();
+  casinoSound.lobby();
   try {
     const p = await handleAuthCallback((prof) => onAuthSuccess(prof, 'Telegram'));
     if (p) profile = p;

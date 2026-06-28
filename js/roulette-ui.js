@@ -2,6 +2,7 @@ import {
   WHEEL_ORDER, RED_NUMS, CHIP_VALUES, TABLE_ROWS,
   spinResult, spinRotation, resolveBets, betLabel, isRed
 } from './roulette.js';
+import { casinoSound } from './sounds.js';
 
 export class RouletteUI {
   constructor({ onBalanceChange, getBalance }) {
@@ -11,6 +12,7 @@ export class RouletteUI {
     this.bets = [];
     this.spinning = false;
     this.rotation = 0;
+    this.tickTimer = null;
     this.cacheEls();
     this.buildWheel();
     this.buildTable();
@@ -32,6 +34,10 @@ export class RouletteUI {
       btnClear: document.getElementById('btn-roulette-clear'),
       message: document.getElementById('roulette-message')
     };
+  }
+
+  betKey(type, value) {
+    return `${type}:${value ?? ''}`;
   }
 
   buildWheel() {
@@ -68,6 +74,14 @@ export class RouletteUI {
     `;
   }
 
+  betBtnHtml({ type, value, label, cls = '' }) {
+    const valAttr = value !== undefined ? ` data-bet-value="${value}"` : '';
+    return `<button type="button" class="roulette-bet-spot ${cls}" data-bet-type="${type}"${valAttr}>
+      <span class="spot-label">${label}</span>
+      <span class="spot-chips"></span>
+    </button>`;
+  }
+
   buildTable() {
     this.els.chipSelect.innerHTML = CHIP_VALUES.map((v) => `
       <button type="button" class="chip-btn${v === this.chipValue ? ' active' : ''}" data-chip="${v}">₵${v}</button>
@@ -81,29 +95,71 @@ export class RouletteUI {
       { type: 'low', label: '1–18', cls: '' },
       { type: 'high', label: '19–36', cls: '' }
     ];
-    this.els.quickBets.innerHTML = quick.map((q) => `
-      <button type="button" class="roulette-bet-btn ${q.cls}" data-bet-type="${q.type}">${q.label}</button>
-    `).join('');
+    this.els.quickBets.innerHTML = quick.map((q) => this.betBtnHtml(q)).join('');
 
-    let tableHtml = `<button type="button" class="roulette-num roulette-zero" data-bet-type="straight" data-bet-value="0">0</button><div class="roulette-grid">`;
+    let tableHtml = this.betBtnHtml({ type: 'straight', value: 0, label: '0', cls: 'roulette-zero' });
+    tableHtml += '<div class="roulette-grid">';
     for (let col = 0; col < 12; col++) {
       tableHtml += '<div class="roulette-col">';
       for (let row = 0; row < 3; row++) {
         const n = TABLE_ROWS[row][col];
         const cls = isRed(n) ? 'num-red' : 'num-black';
-        tableHtml += `<button type="button" class="roulette-num ${cls}" data-bet-type="straight" data-bet-value="${n}">${n}</button>`;
+        tableHtml += this.betBtnHtml({ type: 'straight', value: n, label: String(n), cls: `roulette-num ${cls}` });
       }
       tableHtml += '</div>';
     }
     tableHtml += '</div><div class="roulette-outside">';
     [1, 2, 3].forEach((d) => {
-      tableHtml += `<button type="button" class="roulette-bet-btn" data-bet-type="dozen" data-bet-value="${d}">${d === 1 ? '1st' : d === 2 ? '2nd' : '3rd'} 12</button>`;
+      tableHtml += this.betBtnHtml({
+        type: 'dozen', value: d,
+        label: d === 1 ? '1st' : d === 2 ? '2nd' : '3rd',
+        cls: 'outside-btn'
+      });
     });
     [1, 2, 3].forEach((c) => {
-      tableHtml += `<button type="button" class="roulette-bet-btn" data-bet-type="column" data-bet-value="${c}">2:1</button>`;
+      tableHtml += this.betBtnHtml({ type: 'column', value: c, label: '2:1', cls: 'outside-btn' });
     });
     tableHtml += '</div>';
     this.els.table.innerHTML = tableHtml;
+  }
+
+  findBetSpot(type, value) {
+    const sel = type === 'straight' || type === 'dozen' || type === 'column'
+      ? `[data-bet-type="${type}"][data-bet-value="${value}"]`
+      : `[data-bet-type="${type}"]`;
+    return this.els.table?.querySelector(sel) || this.els.quickBets?.querySelector(sel);
+  }
+
+  renderChipMarkers() {
+    const totals = {};
+    for (const b of this.bets) {
+      const key = this.betKey(b.type, b.value);
+      totals[key] = (totals[key] || 0) + b.amount;
+    }
+
+    document.querySelectorAll('.roulette-bet-spot').forEach((el) => {
+      el.classList.remove('has-chips');
+      const chips = el.querySelector('.spot-chips');
+      if (chips) chips.innerHTML = '';
+    });
+
+    const seen = new Set();
+    for (const b of this.bets) {
+      const key = this.betKey(b.type, b.value);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const el = this.findBetSpot(b.type, b.value);
+      if (!el) continue;
+      const total = totals[key];
+      const chips = el.querySelector('.spot-chips');
+      if (!chips) continue;
+
+      el.classList.add('has-chips');
+      chips.innerHTML = `
+        <span class="chip-on-table" aria-hidden="true"></span>
+        <span class="chip-stack-total">${formatChipAmt(total)}</span>
+      `;
+    }
   }
 
   bind() {
@@ -111,6 +167,7 @@ export class RouletteUI {
       const btn = e.target.closest('[data-chip]');
       if (!btn) return;
       this.chipValue = Number(btn.dataset.chip);
+      casinoSound.chip();
       this.els.chipSelect.querySelectorAll('.chip-btn').forEach((b) => {
         b.classList.toggle('active', Number(b.dataset.chip) === this.chipValue);
       });
@@ -121,13 +178,18 @@ export class RouletteUI {
       const balance = this.getBalance();
       if (balance < this.chipValue) {
         this.setMessage('Not enough chips!');
+        casinoSound.lose();
         return;
       }
       this.bets.push({ type, value, amount: this.chipValue });
       this.onBalanceChange(-this.chipValue);
+      casinoSound.chip();
       this.renderBalance();
       this.updateSummary();
-      this.highlightBet(type, value);
+      this.renderChipMarkers();
+      const el = this.findBetSpot(type, value);
+      el?.classList.add('chip-placed');
+      setTimeout(() => el?.classList.remove('chip-placed'), 300);
     };
 
     this.els.quickBets?.addEventListener('click', (e) => {
@@ -150,15 +212,6 @@ export class RouletteUI {
     this.els.btnSpin?.addEventListener('click', () => this.spin());
   }
 
-  highlightBet(type, value) {
-    const sel = type === 'straight' || type === 'dozen' || type === 'column'
-      ? `[data-bet-type="${type}"][data-bet-value="${value}"]`
-      : `[data-bet-type="${type}"]`;
-    const el = this.els.table?.querySelector(sel) || this.els.quickBets?.querySelector(sel);
-    el?.classList.add('has-bet');
-    setTimeout(() => el?.classList.remove('has-bet'), 400);
-  }
-
   clearBets(refund = true) {
     if (this.spinning) return;
     if (refund && this.bets.length) {
@@ -167,6 +220,7 @@ export class RouletteUI {
       this.renderBalance();
     }
     this.bets = [];
+    this.renderChipMarkers();
     this.updateSummary();
     this.setMessage('');
   }
@@ -192,6 +246,24 @@ export class RouletteUI {
     if (this.els.message) this.els.message.textContent = msg;
   }
 
+  startWheelTicks() {
+    this.stopWheelTicks();
+    let interval = 120;
+    const tick = () => {
+      casinoSound.wheelTick();
+      interval = Math.min(420, interval + 8);
+      this.tickTimer = setTimeout(tick, interval);
+    };
+    tick();
+  }
+
+  stopWheelTicks() {
+    if (this.tickTimer) {
+      clearTimeout(this.tickTimer);
+      this.tickTimer = null;
+    }
+  }
+
   async spin() {
     if (this.spinning) return;
     if (!this.bets.length) {
@@ -203,6 +275,8 @@ export class RouletteUI {
     this.els.btnSpin.disabled = true;
     this.els.btnClear.disabled = true;
     this.setMessage('No more bets…');
+    casinoSound.spinStart();
+    this.startWheelTicks();
 
     const result = spinResult();
     const nextRot = spinRotation(result, this.rotation, 5 + Math.floor(Math.random() * 3));
@@ -214,10 +288,10 @@ export class RouletteUI {
     this.els.result.textContent = '';
 
     await new Promise((r) => setTimeout(r, 4300));
+    this.stopWheelTicks();
 
-    const { totalReturn, wins } = resolveBets(this.bets, result);
+    const { totalReturn } = resolveBets(this.bets, result);
     const staked = this.bets.reduce((s, b) => s + b.amount, 0);
-    const net = totalReturn - 0;
 
     if (totalReturn > 0) this.onBalanceChange(totalReturn);
 
@@ -226,14 +300,18 @@ export class RouletteUI {
     this.els.result.classList.add('show', totalReturn > staked ? 'win' : totalReturn > 0 ? 'win' : 'lose');
 
     if (totalReturn > staked) {
+      casinoSound.win();
       this.setMessage(`Winner! +₵${(totalReturn - staked).toLocaleString()}`);
     } else if (totalReturn > 0) {
-      this.setMessage(`Push / partial — ₵${totalReturn.toLocaleString()} back`);
+      casinoSound.call();
+      this.setMessage(`Partial — ₵${totalReturn.toLocaleString()} back`);
     } else {
+      casinoSound.lose();
       this.setMessage(`${result} ${color} — better luck next spin`);
     }
 
     this.bets = [];
+    this.renderChipMarkers();
     this.updateSummary();
     this.renderBalance();
     this.spinning = false;
@@ -242,8 +320,14 @@ export class RouletteUI {
   }
 
   destroy() {
+    this.stopWheelTicks();
     this.clearBets(false);
     this.els.wheel.style.transition = '';
     this.els.wheel.style.transform = '';
   }
+}
+
+function formatChipAmt(n) {
+  if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
+  return String(n);
 }

@@ -160,28 +160,31 @@ export class PokerUI {
     const el = this.els.turnIndicator;
     if (!el) return;
 
+    const msg = this.els.message?.textContent?.trim();
+    const solo = !msg;
+
     if (state.phase === 'showdown') {
-      el.textContent = 'Showdown — review hands';
-      el.className = 'turn-indicator showdown';
+      el.textContent = 'Showdown';
+      el.className = 'bubble-turn showdown' + (solo ? ' solo' : '');
       return;
     }
 
     const actor = state.players[state.actionIndex];
     if (!actor) {
-      el.textContent = 'Dealing…';
-      el.className = 'turn-indicator';
+      el.textContent = 'Dealing';
+      el.className = 'bubble-turn' + (solo ? ' solo' : '');
       return;
     }
 
     if (actor.isHuman) {
-      el.textContent = '▶ YOUR TURN — choose an action';
-      el.className = 'turn-indicator your-turn';
+      el.textContent = 'Your turn';
+      el.className = 'bubble-turn your-turn' + (solo ? ' solo' : '');
     } else if (actor.folded) {
-      el.textContent = 'Hand continuing…';
-      el.className = 'turn-indicator';
+      el.textContent = '';
+      el.className = 'bubble-turn' + (solo ? ' solo' : '');
     } else {
-      el.textContent = `▶ ${actor.name}'s turn`;
-      el.className = 'turn-indicator their-turn';
+      el.textContent = `${actor.name}'s turn`;
+      el.className = 'bubble-turn their-turn' + (solo ? ' solo' : '');
     }
   }
 

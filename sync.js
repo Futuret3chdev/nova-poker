@@ -9,6 +9,8 @@ const OWNER = process.env.GITHUB_OWNER || 'Futuret3chdev';
 const REPO = process.env.GITHUB_REPO || 'nova-poker';
 const BRANCH = process.env.GITHUB_BRANCH || 'main';
 const MESSAGE = process.argv[2] || `Update ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`;
+// GitHub → Vercel auto-deploy is not wired for nova-poker; CLI deploy is the default.
+const USE_VERCEL_CLI = process.env.SYNC_VERCEL !== 'skip';
 
 const SKIP = new Set(['.git', '.vercel', '.tools', 'node_modules', '.DS_Store']);
 const BINARY_EXT = /\.(png|jpg|jpeg|gif|ico|webp|glb|mp4)$/i;
@@ -144,4 +146,14 @@ async function ensureRepo(token) {
     await api(token, 'POST', `/repos/${OWNER}/${REPO}/git/refs`, { ref: `refs/heads/${BRANCH}`, sha: commitSha });
   }
   console.log(`✅ Pushed ${commitSha.slice(0, 7)} — https://github.com/${OWNER}/${REPO}`);
+
+  if (USE_VERCEL_CLI) {
+    const nodeBin = process.env.NODE_BIN || '/tmp/node-v22.16.0-darwin-x64/bin';
+    const env = { ...process.env, PATH: `${nodeBin}:${process.env.PATH || ''}` };
+    console.log('\n🚀 Vercel CLI: deploying to production...');
+    execSync('npx vercel@latest --prod --yes', { cwd: ROOT, env, stdio: 'inherit' });
+    console.log('✅ Vercel live: https://poker-stars-wheat.vercel.app');
+  } else {
+    console.log('\n💡 Vercel CLI skipped (SYNC_VERCEL=skip)');
+  }
 })();

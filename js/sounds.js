@@ -72,6 +72,13 @@ export const casinoSound = {
     [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, 'sine', 0.1, i * 0.1));
   },
 
+  bigWin() {
+    unlockAudio();
+    [523, 659, 784, 988, 1175, 1319, 1568].forEach((f, i) => tone(f, 0.22, 'sine', 0.11, i * 0.07));
+    noiseBurst(0.18, 0.05);
+    tone(1047, 0.35, 'triangle', 0.08, 0.55);
+  },
+
   lose() {
     unlockAudio();
     tone(220, 0.3, 'sawtooth', 0.08);

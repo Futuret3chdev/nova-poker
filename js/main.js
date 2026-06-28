@@ -1,27 +1,28 @@
-import { PokerGame } from './game.js?v=27';
-import { PokerUI } from './ui.js?v=27';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=27';
-import { artForGame } from './game-art.js?v=27';
-import { applyGameScene } from './game-scene.js?v=27';
-import { RouletteUI } from './roulette-ui.js?v=27';
-import { casinoSound, unlockAudio } from './sounds.js?v=27';
+import { PokerGame } from './game.js?v=28';
+import { PokerUI } from './ui.js?v=28';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=28';
+import { artForGame } from './game-art.js?v=28';
+import { applyGameScene } from './game-scene.js?v=28';
+import { RouletteUI } from './roulette-ui.js?v=28';
+import { casinoSound, unlockAudio } from './sounds.js?v=28';
+import { celebrateWin, winTier } from './celebration.js?v=28';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress, adjustFreeChips
-} from './wallet.js?v=27';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=27';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=27';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=27';
+} from './wallet.js?v=28';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=28';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=28';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=28';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=27';
-import { renderAvatarHTML } from './avatar.js?v=27';
+} from './profile.js?v=28';
+import { renderAvatarHTML } from './avatar.js?v=28';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=27';
+} from './auth.js?v=28';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -652,11 +653,25 @@ async function launchGame() {
         if (el) el.textContent = msg;
         if (/flop|turn|river|Hand #/i.test(msg)) casinoSound.deal();
       },
-      onHandEnd: ({ humanWon }) => {
+      onHandEnd: ({ humanWon, pot, winners }) => {
         wallet = creditWinnings(wallet, mode, 0, humanWon);
         updateWalletUI();
-        if (humanWon) casinoSound.win();
-        else casinoSound.lose();
+        if (humanWon) {
+          const tier = winTier(pot || 0, mode.startingChips || 1000);
+          if (tier === 'big' || tier === 'jackpot') casinoSound.bigWin();
+          else casinoSound.win();
+          const handName = winners?.[0]?.handName;
+          const sym = mode.symbol === '$MEMETORRENT' ? 'MT' : (mode.symbol || '₵');
+          celebrateWin({
+            amount: pot || 0,
+            staked: mode.startingChips || 1000,
+            label: 'WINNER!',
+            subtitle: handName ? handName : 'Pot captured',
+            symbol: sym === 'MT' ? 'MT' : '₵'
+          });
+        } else {
+          casinoSound.lose();
+        }
       }
     });
 

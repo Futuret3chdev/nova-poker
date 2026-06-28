@@ -17,9 +17,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=27">
-  <link rel="stylesheet" href="/css/roulette.css?v=27">
-  <link rel="stylesheet" href="/css/game-scene.css?v=27">
+  <link rel="stylesheet" href="/css/style.css?v=28">
+  <link rel="stylesheet" href="/css/roulette.css?v=28">
+  <link rel="stylesheet" href="/css/game-scene.css?v=28">
+  <link rel="stylesheet" href="/css/celebration.css?v=28">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -463,7 +464,9 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=27"></script>
+  <div id="celebration-layer" class="celebration-layer" aria-hidden="true" hidden></div>
+
+  <script type="module" src="/js/main.js?v=28"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

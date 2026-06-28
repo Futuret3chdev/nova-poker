@@ -3,7 +3,8 @@ import {
   spinResult, resolveBets, betLabel, isRed
 } from './roulette.js';
 import { RouletteWheelCanvas } from './roulette-wheel.js';
-import { casinoSound } from './sounds.js';
+import { casinoSound } from './sounds.js?v=28';
+import { celebrateWin, winTier } from './celebration.js?v=28';
 
 export class RouletteUI {
   constructor({ onBalanceChange, getBalance }) {
@@ -256,8 +257,18 @@ export class RouletteUI {
     this.renderHistory();
 
     if (totalReturn > staked) {
-      casinoSound.win();
-      this.setMessage(`Winner! +₵${(totalReturn - staked).toLocaleString()}`);
+      const profit = totalReturn - staked;
+      const tier = winTier(profit, staked);
+      if (tier === 'big' || tier === 'jackpot') casinoSound.bigWin();
+      else casinoSound.win();
+      celebrateWin({
+        amount: profit,
+        staked,
+        label: 'WINNER!',
+        subtitle: `Lucky ${result}`,
+        symbol: '₵'
+      });
+      this.setMessage(`Winner! +₵${profit.toLocaleString()}`);
     } else if (totalReturn > 0) {
       casinoSound.call();
       this.setMessage(`₵${totalReturn.toLocaleString()} returned`);

@@ -1,23 +1,23 @@
-import { PokerGame } from './game.js?v=18';
-import { PokerUI } from './ui.js?v=18';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=18';
+import { PokerGame } from './game.js?v=19';
+import { PokerUI } from './ui.js?v=19';
+import { TABLE_MODES, CASINO_BRAND, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=19';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=18';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=18';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=18';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=18';
+} from './wallet.js?v=19';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=19';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=19';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=19';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=18';
-import { renderAvatarHTML } from './avatar.js?v=18';
+} from './profile.js?v=19';
+import { renderAvatarHTML } from './avatar.js?v=19';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=18';
+} from './auth.js?v=19';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -122,26 +122,57 @@ async function updateWalletUI() {
   if (bonusBtn) bonusBtn.disabled = wallet.lastDailyBonus === today;
 }
 
-function renderCasinoGames() {
-  const el = document.getElementById('menu-games');
-  if (!el) return;
-  el.innerHTML = `<h3>Casino Games</h3><div class="mode-grid" id="games-grid"></div>`;
-  const grid = document.getElementById('games-grid');
+function showComingSoonToast(title) {
+  const note = document.getElementById('wallet-note');
+  if (!note) return;
+  const prev = note.textContent;
+  note.textContent = `${title} — coming soon to Nova Mirage`;
+  note.style.color = 'var(--gold)';
+  clearTimeout(showComingSoonToast._t);
+  showComingSoonToast._t = setTimeout(() => {
+    note.textContent = prev;
+    note.style.color = '';
+  }, 2800);
+}
 
-  CASINO_GAMES.forEach((g) => {
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'mode-card mode-slots';
-    card.innerHTML = `
-      <span class="mode-icon">${g.icon}</span>
-      <span class="mode-badge-sm">${g.badge}</span>
-      <span class="mode-title">${g.title}</span>
-      <span class="mode-desc">${g.subtitle}</span>
-      <span class="mode-stakes">Live on-chain · Lucky Reels</span>
-    `;
-    card.addEventListener('click', () => openLuckyReels());
-    grid.appendChild(card);
-  });
+function renderGameCard(game, sectionId) {
+  const isPoker = sectionId === 'poker' && game.modeId;
+  const mode = isPoker ? TABLE_MODES[game.modeId] : null;
+  const live = game.status === 'live' || (mode && game.status !== 'soon');
+  const data = mode || game;
+
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.className = [
+    'mode-card',
+    mode ? `mode-${mode.currency}` : sectionId === 'pokiers' ? 'mode-slots' : 'mode-floor',
+    live ? '' : 'mode-soon'
+  ].filter(Boolean).join(' ');
+
+  const stakes = mode
+    ? `Blinds ${mode.smallBlind}/${mode.bigBlind} ${mode.symbol === '$MEMETORRENT' ? 'MT' : mode.symbol}`
+    : live && game.external
+      ? 'Live on-chain · $MT'
+      : 'Opening soon';
+
+  card.innerHTML = `
+    <span class="mode-icon">${data.icon}</span>
+    <span class="mode-badge-sm">${data.badge || (live ? 'LIVE' : 'SOON')}</span>
+    <span class="mode-title">${data.title}</span>
+    <span class="mode-desc">${data.subtitle}</span>
+    <span class="mode-stakes">${stakes}</span>
+  `;
+
+  if (live) {
+    card.addEventListener('click', () => {
+      if (mode) selectMode(mode);
+      else if (game.external) openLuckyReels();
+    });
+  } else {
+    card.addEventListener('click', () => showComingSoonToast(data.title));
+  }
+
+  return card;
 }
 
 function openLuckyReels() {
@@ -152,33 +183,24 @@ function openLuckyReels() {
 }
 
 function renderMenu() {
-  renderCasinoGames();
-  const container = document.getElementById('menu-modes');
+  const container = document.getElementById('menu-sections');
   if (!container) return;
   container.innerHTML = '';
 
-  MENU_SECTIONS.forEach((section) => {
+  CASINO_GAME_SECTIONS.forEach((section) => {
     const sec = document.createElement('div');
-    sec.className = 'menu-section';
-    sec.innerHTML = `<h3>${section.title}</h3>`;
+    sec.className = `menu-section menu-section-${section.id}`;
+    sec.innerHTML = `
+      <div class="section-head">
+        <h3>${section.title}</h3>
+        <p class="section-sub">${section.subtitle}</p>
+      </div>
+    `;
     const grid = document.createElement('div');
     grid.className = 'mode-grid';
 
-    section.items.forEach((id) => {
-      const mode = TABLE_MODES[id];
-      if (!mode) return;
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = `mode-card mode-${mode.currency}`;
-      card.innerHTML = `
-        <span class="mode-icon">${mode.icon}</span>
-        <span class="mode-badge-sm">${mode.badge}</span>
-        <span class="mode-title">${mode.title}</span>
-        <span class="mode-desc">${mode.subtitle}</span>
-        <span class="mode-stakes">Blinds ${mode.smallBlind}/${mode.bigBlind} ${mode.symbol === '$MEMETORRENT' ? 'MT' : mode.symbol}</span>
-      `;
-      card.addEventListener('click', () => selectMode(mode));
-      grid.appendChild(card);
+    section.games.forEach((game) => {
+      grid.appendChild(renderGameCard(game, section.id));
     });
 
     sec.appendChild(grid);

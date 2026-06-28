@@ -84,9 +84,25 @@ html, body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(229, 57, 53, 0.15), transparent),
-    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(255, 193, 7, 0.08), transparent),
-    linear-gradient(180deg, #12161d 0%, #0a0d12 100%);
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(124, 77, 255, 0.22), transparent),
+    radial-gradient(ellipse 70% 50% at 15% 85%, rgba(229, 57, 53, 0.14), transparent),
+    radial-gradient(ellipse 60% 45% at 88% 75%, rgba(255, 193, 7, 0.1), transparent),
+    linear-gradient(180deg, #141a24 0%, #080b10 100%);
+}
+
+.lobby-neon-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 35% at 50% 38%, rgba(255, 193, 7, 0.12), transparent 70%),
+    radial-gradient(ellipse 40% 25% at 50% 42%, rgba(124, 77, 255, 0.15), transparent 75%);
+  animation: mirage-pulse 4s ease-in-out infinite;
+}
+
+@keyframes mirage-pulse {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
 }
 
 .lobby-content {
@@ -741,6 +757,80 @@ html, body {
   .menu-scroll { padding-bottom: 60px; }
 }
 
+/* ── Nova Mirage cover ── */
+.casino-cover { margin-bottom: 1.25rem; }
+
+.casino-marquee {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 14px;
+  margin-bottom: 14px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: rgba(255, 193, 7, 0.55);
+}
+
+.casino-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0 0 10px;
+  line-height: 0.95;
+}
+
+.name-nova,
+.name-mirage {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.name-nova {
+  font-size: clamp(1.1rem, 4vw, 1.35rem);
+  color: var(--mt-glow);
+  text-shadow: 0 0 18px rgba(124, 77, 255, 0.45);
+}
+
+.name-mirage {
+  font-size: clamp(2.6rem, 11vw, 3.6rem);
+  color: var(--gold);
+  text-shadow:
+    0 0 20px rgba(255, 193, 7, 0.35),
+    0 0 40px rgba(229, 57, 53, 0.15);
+}
+
+.casino-tagline {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-bottom: 14px;
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+  font-style: italic;
+}
+
+.cover-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.cover-pill {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(240, 243, 246, 0.75);
+}
+
 /* ── MT Ecosystem branding ── */
 .eco-brand { margin-bottom: 1rem; }
 .eco-tag {
@@ -895,6 +985,38 @@ html, body {
   border-color: var(--gold) !important;
   box-shadow: 0 4px 24px rgba(255, 193, 7, 0.2);
 }
+
+.mode-floor {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.mode-soon {
+  opacity: 0.72;
+  cursor: pointer;
+}
+.mode-soon .mode-badge-sm {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+.mode-soon .mode-stakes { color: var(--muted); }
+.mode-soon:hover {
+  opacity: 0.9;
+  border-color: rgba(255, 255, 255, 0.14);
+  transform: none;
+}
+
+.section-head { margin-bottom: 10px; }
+.section-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin: 2px 0 0;
+  line-height: 1.35;
+}
+
+.menu-section-poker .section-head h3 { color: var(--green-btn); }
+.menu-section-pokiers .section-head h3 { color: var(--gold); }
+.menu-section-floor .section-head h3 { color: rgba(240, 243, 246, 0.85); }
 
 .reels-frame {
   flex: 1;

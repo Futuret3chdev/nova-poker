@@ -15,8 +15,8 @@ export const LUCKY_REELS_URL = 'https://lucky-reels-eosin.vercel.app';
 // OAuth — same structure & credentials as mte-pop/js/config.js (MTEPOP_CONFIG)
 export const MT_POKER_CONFIG = {
   appUrl: 'https://poker-stars-wheat.vercel.app',
-  appName: 'MT Poker',
-  inviteMessage: 'Join me at MT Poker — Texas Hold\'em in the MT Ecosystem!',
+  appName: 'Nova Mirage',
+  inviteMessage: 'Join me at Nova Mirage — poker, pokiers & more in the MT Ecosystem!',
 
   // Redirect URI for Discord (paste exactly in Discord portal):
   // https://poker-stars-wheat.vercel.app/auth/callback

@@ -1,14 +1,9 @@
-export const CASINO_GAMES = [
-  {
-    id: 'lucky-reels',
-    title: 'Lucky Reels',
-    subtitle: 'Premium slots — real $MEMETORRENT on-chain',
-    icon: '🎰',
-    badge: 'SLOTS',
-    external: true,
-    url: 'https://lucky-reels-eosin.vercel.app'
-  }
-];
+export const CASINO_BRAND = {
+  name: 'Nova Mirage',
+  tagline: 'Where legends deal & the reels never sleep',
+  shortName: 'Nova Mirage',
+  inviteMessage: 'Join me at Nova Mirage — poker, pokiers & more in the MT Ecosystem!'
+};
 
 export const TABLE_MODES = {
   'free-ai': {
@@ -104,17 +99,95 @@ export const TABLE_MODES = {
   }
 };
 
-export const MENU_SECTIONS = [
+/** 20 games across Poker, Pokiers, and Casino Floor (in development). */
+export const CASINO_GAME_SECTIONS = [
   {
-    id: 'play',
-    title: 'Play',
-    items: ['free-ai', 'free-multi', 'mt-ai', 'mt-multi']
+    id: 'poker',
+    title: 'Poker',
+    subtitle: 'Texas Hold\'em — live tables & tournaments',
+    games: [
+      { id: 'free-ai', modeId: 'free-ai', status: 'live' },
+      { id: 'free-multi', modeId: 'free-multi', status: 'live' },
+      { id: 'mt-ai', modeId: 'mt-ai', status: 'live' },
+      { id: 'mt-multi', modeId: 'mt-multi', status: 'live' },
+      { id: 'turbo', modeId: 'turbo', status: 'live' },
+      { id: 'sitngo', modeId: 'sitngo', status: 'live' }
+    ]
   },
   {
-    id: 'variants',
-    title: 'Variants',
-    items: ['turbo', 'sitngo']
+    id: 'pokiers',
+    title: 'Pokiers',
+    subtitle: 'Premium reels — $MEMETORRENT on-chain',
+    games: [
+      {
+        id: 'lucky-reels',
+        title: 'Lucky Reels',
+        subtitle: 'Flagship slots — real $MT wins',
+        icon: '🎰',
+        badge: 'LIVE',
+        status: 'live',
+        external: true,
+        url: 'https://lucky-reels-eosin.vercel.app'
+      },
+      {
+        id: 'meme-jackpot',
+        title: 'Meme Jackpot',
+        subtitle: 'Progressive meme-themed reels',
+        icon: '💰',
+        badge: 'SOON',
+        status: 'soon'
+      },
+      {
+        id: 'starfall-spins',
+        title: 'Starfall Spins',
+        subtitle: 'Cascading wins under neon lights',
+        icon: '✨',
+        badge: 'SOON',
+        status: 'soon'
+      },
+      {
+        id: 'diamond-drift',
+        title: 'Diamond Drift',
+        subtitle: 'High-volatility gem chase',
+        icon: '💎',
+        badge: 'SOON',
+        status: 'soon'
+      },
+      {
+        id: 'torrent-treasures',
+        title: 'Torrent Treasures',
+        subtitle: 'MemeTorrent adventure reels',
+        icon: '🌊',
+        badge: 'SOON',
+        status: 'soon'
+      }
+    ]
+  },
+  {
+    id: 'floor',
+    title: 'Casino Floor',
+    subtitle: 'More games — opening soon on Nova Mirage',
+    games: [
+      { id: 'blackjack', title: 'Blackjack', subtitle: 'Beat the dealer to 21', icon: '🃏', badge: 'SOON', status: 'soon' },
+      { id: 'roulette', title: 'Roulette', subtitle: 'Spin the wheel of fortune', icon: '🎡', badge: 'SOON', status: 'soon' },
+      { id: 'baccarat', title: 'Baccarat', subtitle: 'Player vs banker elegance', icon: '🂡', badge: 'SOON', status: 'soon' },
+      { id: 'craps', title: 'Craps', subtitle: 'Roll the dice on the pass line', icon: '🎲', badge: 'SOON', status: 'soon' },
+      { id: 'video-poker', title: 'Video Poker', subtitle: 'Jacks or better multi-hand', icon: '📺', badge: 'SOON', status: 'soon' },
+      { id: 'keno', title: 'Keno Lounge', subtitle: 'Pick lucky numbers fast', icon: '🔢', badge: 'SOON', status: 'soon' },
+      { id: 'wheel', title: 'Wheel of Fate', subtitle: 'Big multipliers, one spin', icon: '🎯', badge: 'SOON', status: 'soon' },
+      { id: 'crash', title: 'Crash Orbit', subtitle: 'Cash out before the bust', icon: '🚀', badge: 'SOON', status: 'soon' },
+      { id: 'plinko', title: 'Plinko Palace', subtitle: 'Drop chips for cascading prizes', icon: '⚪', badge: 'SOON', status: 'soon' }
+    ]
   }
+];
+
+/** @deprecated — use CASINO_GAME_SECTIONS */
+export const CASINO_GAMES = CASINO_GAME_SECTIONS.find((s) => s.id === 'pokiers')?.games.filter((g) => g.status === 'live') || [];
+
+/** @deprecated — poker section only */
+export const MENU_SECTIONS = [
+  { id: 'play', title: 'Play', items: ['free-ai', 'free-multi', 'mt-ai', 'mt-multi'] },
+  { id: 'variants', title: 'Variants', items: ['turbo', 'sitngo'] }
 ];
 
 export const MULTIPLAYER_ROOMS = [

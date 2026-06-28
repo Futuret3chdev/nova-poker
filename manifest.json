@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "MT Poker — MT Ecosystem Casino",
-  "short_name": "MT Poker",
-  "description": "Texas Hold'em & Lucky Reels · Futuret3ch · MemeTorrent",
+  "name": "Nova Mirage — MT Ecosystem Casino",
+  "short_name": "Nova Mirage",
+  "description": "Poker, Pokiers & 20 games · Futuret3ch · MemeTorrent",
   "start_url": "/?utm_source=homescreen",
   "scope": "/",
   "display": "standalone",

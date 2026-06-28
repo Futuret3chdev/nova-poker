@@ -7,9 +7,9 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="MT Poker">
+  <meta name="apple-mobile-web-app-title" content="Nova Mirage">
   <meta name="format-detection" content="telephone=no">
-  <title>MT Poker — Texas Hold'em | MT Ecosystem</title>
+  <title>Nova Mirage — MT Ecosystem Casino</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=18">
+  <link rel="stylesheet" href="/css/style.css?v=19">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -28,23 +28,34 @@
     <!-- SPLASH -->
     <section id="title-screen" class="screen active">
       <div class="lobby-bg"></div>
+      <div class="lobby-neon-glow" aria-hidden="true"></div>
       <div class="lobby-content">
-        <div class="eco-brand">
+        <div class="casino-cover">
           <p class="eco-tag">MT ECOSYSTEM</p>
-          <div class="brand-star">★</div>
-          <h1>MT POKER</h1>
-          <p class="brand-sub">Texas Hold'em · Powered by MemeTorrent</p>
+          <div class="casino-marquee" aria-hidden="true">
+            <span>♠ POKER</span><span>♦ POKIERS</span><span>♣ 20 GAMES</span><span>♥ $MT</span>
+          </div>
+          <h1 class="casino-name">
+            <span class="name-nova">NOVA</span>
+            <span class="name-mirage">MIRAGE</span>
+          </h1>
+          <p class="casino-tagline">Where legends deal &amp; the reels never sleep</p>
+          <div class="cover-pills">
+            <span class="cover-pill">Poker</span>
+            <span class="cover-pill">Pokiers</span>
+            <span class="cover-pill">Casino Floor</span>
+          </div>
         </div>
         <p class="eco-credits">
           <span>Made by <strong>Futuret3ch</strong></span>
           <span class="sep">·</span>
           <span><strong>MEMETORRENT</strong> $MT</span>
         </p>
-        <button class="btn-play" id="btn-enter" type="button">Enter Casino</button>
-        <p class="lobby-hint">Free chips for practice · $MT requires Phantom/Solflare</p>
+        <button class="btn-play" id="btn-enter" type="button">Enter Nova Mirage</button>
+        <p class="lobby-hint">20 games on the floor · Poker &amp; Pokiers live now</p>
       </div>
       <footer class="lobby-footer">
-        <span>MT ECOSYSTEM</span>
+        <span>NOVA MIRAGE</span>
         <span>Futuret3ch × MemeTorrent</span>
       </footer>
     </section>
@@ -54,7 +65,7 @@
       <header class="menu-header">
         <button type="button" class="btn-ghost" id="btn-menu-back">←</button>
         <div class="menu-header-center">
-          <span class="eco-pill">MT ECOSYSTEM</span>
+          <span class="eco-pill">NOVA MIRAGE</span>
           <h2>Casino Lobby</h2>
         </div>
         <div class="menu-header-actions">
@@ -89,8 +100,7 @@
       <p class="wallet-note" id="wallet-note">Same wallet as Lucky Reels — on-chain $MEMETORRENT, no free tokens</p>
 
       <div class="menu-scroll">
-        <div id="menu-games" class="menu-section"></div>
-        <div id="menu-modes"></div>
+        <div id="menu-sections"></div>
 
         <div class="menu-section">
           <h3>Live Tables</h3>
@@ -366,7 +376,7 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=18"></script>
+  <script type="module" src="/js/main.js?v=19"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

@@ -3,10 +3,20 @@ import { MEMETORRENT } from './config.js';
 let activeProvider = null;
 let activeType = '';
 
+export function isMobileDevice() {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+}
+
+export function isStandaloneApp() {
+  return window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true
+    || document.referrer.includes('android-app://');
+}
+
 export function detectWallets() {
   return {
     phantom: !!(window.phantom?.solana?.isPhantom),
-    solflare: !!window.solflare,
+    solflare: !!window.solflare?.isSolflare || !!window.solflare,
     backpack: !!window.backpack
   };
 }
@@ -21,6 +31,24 @@ export function shortAddress(addr) {
   return `${addr.slice(0, 4)}…${addr.slice(-4)}`;
 }
 
+function pageUrl() {
+  return window.location.href.split('#')[0];
+}
+
+/** Opens Phantom / Solflare / Backpack app directly on mobile (not browser tab). */
+export function openWalletDeepLink(type) {
+  const ref = encodeURIComponent(pageUrl());
+  sessionStorage.setItem('mt-pending-wallet', type);
+
+  if (type === 'phantom') {
+    window.location.href = `https://phantom.app/ul/browse/${ref}`;
+  } else if (type === 'solflare') {
+    window.location.href = `https://solflare.com/ul/browse/${ref}`;
+  } else if (type === 'backpack') {
+    window.location.href = `https://backpack.app/ul/browse/${ref}`;
+  }
+}
+
 async function extractPublicKey(provider, resp) {
   for (let i = 0; i < 5; i++) {
     const pk = resp?.publicKey || provider?.publicKey;
@@ -30,30 +58,30 @@ async function extractPublicKey(provider, resp) {
   return null;
 }
 
+function getProviderForType(type) {
+  if (type === 'phantom') return window.phantom?.solana;
+  if (type === 'solflare') return window.solflare;
+  if (type === 'backpack') return window.backpack;
+  return null;
+}
+
 export async function connectWalletType(type) {
-  let provider = null;
+  let provider = getProviderForType(type);
+  const mobile = isMobileDevice();
+  const standalone = isStandaloneApp();
 
-  if (type === 'phantom') {
-    provider = window.phantom?.solana;
-    if (!provider?.isPhantom) {
-      window.open('https://phantom.app/', '_blank');
-      throw new Error('Open Phantom app, then use its browser to visit MT Poker');
+  if (type === 'phantom' && !provider?.isPhantom) provider = null;
+  if (type === 'solflare' && !provider) provider = null;
+  if (type === 'backpack' && !provider) provider = null;
+
+  if (!provider) {
+    if (mobile || standalone) {
+      openWalletDeepLink(type);
+      throw new Error(`Opening ${type} app…`);
     }
-  } else if (type === 'solflare') {
-    provider = window.solflare;
-    if (!provider) {
-      window.open('https://solflare.com/', '_blank');
-      throw new Error('Open Solflare app, then use its browser to visit MT Poker');
-    }
-  } else if (type === 'backpack') {
-    provider = window.backpack;
-    if (!provider) {
-      window.open('https://backpack.app/', '_blank');
-      throw new Error('Backpack not installed');
-    }
+    window.open(walletInstallUrl(type), '_blank');
+    throw new Error(`Install ${type} wallet`);
   }
-
-  if (!provider) throw new Error('Wallet not found');
 
   let resp;
   try {
@@ -62,11 +90,12 @@ export async function connectWalletType(type) {
 
   const publicKey = await extractPublicKey(provider, resp);
   if (!publicKey) {
-    throw new Error(`Failed to get public key from ${type}. Try again or use Phantom.`);
+    throw new Error(`Failed to get public key from ${type}. Tap connect again.`);
   }
 
   activeProvider = provider;
   activeType = type;
+  sessionStorage.removeItem('mt-pending-wallet');
 
   if (provider.on) {
     provider.on('accountChanged', (pk) => {
@@ -84,6 +113,7 @@ export async function disconnectSolana() {
   } catch (_) { /* ok */ }
   activeProvider = null;
   activeType = '';
+  sessionStorage.removeItem('mt-pending-wallet');
 }
 
 export async function fetchSolBalance(pubkey) {

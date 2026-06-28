@@ -1,14 +1,14 @@
-import { PokerGame } from './game.js?v=6';
-import { PokerUI } from './ui.js?v=6';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=6';
+import { PokerGame } from './game.js?v=7';
+import { PokerUI } from './ui.js?v=7';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=7';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=6';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=6';
-import { detectWallets, sendMTToTreasury, walletInstallUrl } from './solana-wallet.js?v=6';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=6';
+} from './wallet.js?v=7';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=7';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=7';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=7';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -345,19 +345,31 @@ async function stopGame() {
 }
 
 async function handleConnect(type) {
-  if (!detectWallets()[type]) {
-    toast(`Install ${type} wallet`);
-    window.open(walletInstallUrl(type), '_blank');
-    return;
-  }
   try {
     wallet = await connectWalletProvider(type);
     closeModal('wallet-modal');
     toast(`Connected — ${formatMt(wallet.mtBalance)} $MEMETORRENT on-chain`);
     await updateWalletUI();
   } catch (err) {
-    toast(err.message || 'Connection failed');
+    const msg = err.message || 'Connection failed';
+    if (msg.includes('Opening') && msg.includes('app')) {
+      toast(msg);
+      closeModal('wallet-modal');
+    } else {
+      toast(msg);
+    }
   }
+}
+
+async function resumeWalletIfNeeded() {
+  const pending = sessionStorage.getItem('mt-pending-wallet');
+  if (!pending || !detectWallets()[pending]) return;
+  try {
+    wallet = await connectWalletProvider(pending);
+    closeModal('wallet-modal');
+    toast(`Connected — ${formatMt(wallet.mtBalance)} $MEMETORRENT`);
+    await updateWalletUI();
+  } catch (_) { /* user may still be in wallet app */ }
 }
 
 document.getElementById('btn-enter')?.addEventListener('click', async () => {
@@ -425,6 +437,7 @@ document.getElementById('btn-join-room')?.addEventListener('click', () => {
 document.getElementById('btn-multi-back')?.addEventListener('click', () => showScreen('menu'));
 
 setupInstallHint();
+resumeWalletIfNeeded();
 updateWalletUI();
 renderMenu();
 showScreen('title');

@@ -17,11 +17,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=6">
+  <link rel="stylesheet" href="/css/style.css?v=7">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
-    <p><strong>Install MT Poker</strong> — tap <span class="ios-share">Share</span> then <strong>Add to Home Screen</strong> to open as the app (not browser).</p>
+    <p><strong>Tip:</strong> Tap <span class="ios-share">Share</span> → <strong>Add to Home Screen</strong>. To connect wallet, tap Phantom/Solflare — it opens the <strong>wallet app</strong> directly.</p>
     <button type="button" id="install-hint-close">Got it</button>
   </div>
   <div id="app">
@@ -227,7 +227,7 @@
     <div class="modal-backdrop" id="wallet-modal-backdrop"></div>
     <div class="modal-card">
       <h3>Connect Wallet</h3>
-      <p class="modal-desc">Same wallets as Lucky Reels. $MEMETORRENT balance is read live from chain — never given free.</p>
+      <p class="modal-desc">On mobile this opens the <strong>Phantom / Solflare app</strong> directly (same as Lucky Reels). Approve connect inside the wallet.</p>
       <button type="button" class="wallet-option phantom" id="btn-phantom">
         <span class="wallet-icon">👻</span>
         <span>Phantom</span>
@@ -244,7 +244,7 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=6"></script>
+  <script type="module" src="/js/main.js?v=7"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

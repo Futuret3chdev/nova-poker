@@ -1,14 +1,14 @@
-import { PokerGame } from './game.js?v=7';
-import { PokerUI } from './ui.js?v=7';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=7';
+import { PokerGame } from './game.js?v=8';
+import { PokerUI } from './ui.js?v=8';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=8';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=7';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=7';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=7';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=7';
+} from './wallet.js?v=8';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=8';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=8';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=8';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -364,12 +364,19 @@ async function handleConnect(type) {
 async function resumeWalletIfNeeded() {
   const pending = sessionStorage.getItem('mt-pending-wallet');
   if (!pending || !detectWallets()[pending]) return;
-  try {
-    wallet = await connectWalletProvider(pending);
-    closeModal('wallet-modal');
-    toast(`Connected — ${formatMt(wallet.mtBalance)} $MEMETORRENT`);
-    await updateWalletUI();
-  } catch (_) { /* user may still be in wallet app */ }
+  // Solflare injects slowly after v1/browse opens
+  const delays = pending === 'solflare' ? [0, 800, 2000] : [0];
+  for (const ms of delays) {
+    if (ms) await new Promise((r) => setTimeout(r, ms));
+    if (!detectWallets()[pending]) continue;
+    try {
+      wallet = await connectWalletProvider(pending);
+      closeModal('wallet-modal');
+      toast(`Connected — ${formatMt(wallet.mtBalance)} $MEMETORRENT`);
+      await updateWalletUI();
+      return;
+    } catch (_) { /* retry */ }
+  }
 }
 
 document.getElementById('btn-enter')?.addEventListener('click', async () => {

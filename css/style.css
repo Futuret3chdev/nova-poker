@@ -764,6 +764,8 @@ html, body {
   .header-center { font-size: 0.82rem; }
 
   .mode-grid { grid-template-columns: 1fr 1fr; }
+  .game-card { flex-basis: min(72vw, 280px); }
+  .game-card-title { font-size: 0.95rem; }
   .wallet-bar { flex-wrap: wrap; gap: 8px; }
   .menu-scroll { padding-bottom: 60px; }
 }
@@ -1098,6 +1100,277 @@ html, body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 10px;
+}
+
+/* ── Big animated game cards (Nova Mirage lobby) ── */
+.game-carousel {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 2px 16px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.game-carousel::-webkit-scrollbar { display: none; }
+
+.game-card {
+  flex: 0 0 min(78vw, 300px);
+  scroll-snap-align: start;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: var(--surface);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  padding: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.game-card:hover,
+.game-card:focus-visible {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(255, 193, 7, 0.45);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 193, 7, 0.12);
+}
+.game-card:active { transform: scale(0.98); }
+
+.game-card-visual {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: linear-gradient(145deg, #1a2030, #0d1117);
+}
+
+.game-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transform: scale(1.02);
+  transition: transform 0.4s ease;
+}
+.game-card:hover .game-card-img { transform: scale(1.08); }
+
+.game-card-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Bottom fire / heat glow */
+.fx-embers {
+  background: linear-gradient(0deg, rgba(229, 57, 53, 0.55) 0%, rgba(255, 140, 0, 0.2) 18%, transparent 45%);
+  opacity: 0;
+  animation: fx-ember-pulse 2.4s ease-in-out infinite;
+}
+.fx-embers::before,
+.fx-embers::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 40%;
+  height: 35%;
+  border-radius: 50%;
+  filter: blur(18px);
+  animation: fx-ember-drift 3s ease-in-out infinite alternate;
+}
+.fx-embers::before {
+  left: 10%;
+  background: rgba(255, 100, 30, 0.5);
+}
+.fx-embers::after {
+  right: 12%;
+  background: rgba(255, 193, 7, 0.4);
+  animation-delay: -1.2s;
+}
+
+@keyframes fx-ember-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+@keyframes fx-ember-drift {
+  from { transform: translateY(6px) scale(0.9); }
+  to { transform: translateY(-8px) scale(1.1); }
+}
+
+/* Rim glow */
+.fx-glow {
+  box-shadow: inset 0 0 30px rgba(255, 193, 7, 0.08);
+  animation: fx-glow-breathe 2.8s ease-in-out infinite;
+}
+@keyframes fx-glow-breathe {
+  0%, 100% { box-shadow: inset 0 0 20px rgba(255, 193, 7, 0.05); }
+  50% { box-shadow: inset 0 0 45px rgba(255, 193, 7, 0.18), inset 0 -20px 40px rgba(229, 57, 53, 0.12); }
+}
+
+/* Shimmer sweep */
+.fx-shimmer {
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.12) 48%,
+    transparent 62%
+  );
+  transform: translateX(-120%);
+  animation: fx-shimmer-sweep 4s ease-in-out infinite;
+}
+@keyframes fx-shimmer-sweep {
+  0%, 70% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+/* Spark particles */
+.fx-sparks {
+  background-image:
+    radial-gradient(circle, rgba(255, 220, 100, 0.9) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(255, 140, 60, 0.8) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.7) 0 1px, transparent 2px);
+  background-size: 120px 80px, 90px 70px, 110px 90px;
+  background-position: 20% 80%, 70% 75%, 45% 90%;
+  opacity: 0;
+  animation: fx-spark-twinkle 2s ease-in-out infinite;
+}
+@keyframes fx-spark-twinkle {
+  0%, 100% { opacity: 0; }
+  40%, 60% { opacity: 0.7; }
+}
+
+.game-card-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+}
+.game-live .game-card-badge {
+  background: rgba(229, 57, 53, 0.75);
+  border-color: rgba(255, 140, 60, 0.5);
+  box-shadow: 0 0 12px rgba(229, 57, 53, 0.5);
+  animation: badge-live-pulse 1.8s ease-in-out infinite;
+}
+@keyframes badge-live-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(229, 57, 53, 0.4); }
+  50% { box-shadow: 0 0 18px rgba(255, 140, 0, 0.7); }
+}
+
+.game-card-info {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: linear-gradient(180deg, rgba(13, 17, 23, 0.95), var(--surface));
+}
+.game-card-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin: 0;
+  line-height: 1.2;
+}
+.game-card-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.game-card-stakes {
+  font-size: 0.68rem;
+  color: var(--gold);
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.game-soon { opacity: 0.82; }
+.game-soon .game-card-img { filter: saturate(0.65) brightness(0.75); }
+.game-soon .game-card-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+  animation: none;
+  box-shadow: none;
+}
+.game-soon .fx-embers,
+.game-soon .fx-sparks { animation: none; opacity: 0.15; }
+.game-soon .fx-shimmer { animation-duration: 7s; opacity: 0.5; }
+
+/* FX variants */
+.fx-fire .fx-embers,
+.fx-fire .fx-sparks,
+.fx-jackpot .fx-embers,
+.fx-jackpot .fx-sparks { opacity: 1; }
+
+.fx-electric .fx-glow {
+  animation-name: fx-electric-pulse;
+}
+@keyframes fx-electric-pulse {
+  0%, 100% { box-shadow: inset 0 0 25px rgba(124, 77, 255, 0.15); }
+  50% { box-shadow: inset 0 0 50px rgba(144, 202, 249, 0.25), inset 0 -15px 30px rgba(124, 77, 255, 0.2); }
+}
+.fx-electric .fx-embers {
+  background: linear-gradient(0deg, rgba(124, 77, 255, 0.45) 0%, transparent 40%);
+  opacity: 0.6;
+  animation: fx-ember-pulse 1.6s ease-in-out infinite;
+}
+
+.fx-crystal .fx-glow {
+  box-shadow: inset 0 0 35px rgba(124, 77, 255, 0.2);
+  animation: fx-crystal-shine 3s ease-in-out infinite;
+}
+@keyframes fx-crystal-shine {
+  50% { box-shadow: inset 0 0 55px rgba(180, 140, 255, 0.35); }
+}
+
+.fx-gold .fx-shimmer { animation-duration: 3s; }
+.fx-gold .fx-embers {
+  background: linear-gradient(0deg, rgba(255, 193, 7, 0.4) 0%, transparent 42%);
+  opacity: 0.7;
+}
+
+.fx-stars .fx-sparks {
+  opacity: 0.8;
+  animation: fx-spark-twinkle 1.2s ease-in-out infinite;
+  background-image:
+    radial-gradient(circle, rgba(200, 220, 255, 0.95) 0 1.5px, transparent 3px),
+    radial-gradient(circle, rgba(124, 77, 255, 0.8) 0 1px, transparent 2px);
+}
+
+.fx-ice .fx-glow {
+  animation: fx-ice-glow 3.5s ease-in-out infinite;
+}
+@keyframes fx-ice-glow {
+  50% { box-shadow: inset 0 0 40px rgba(144, 220, 255, 0.2); }
+}
+
+.fx-wave .fx-embers {
+  background: linear-gradient(0deg, rgba(0, 180, 200, 0.4) 0%, transparent 45%);
+  opacity: 0.55;
+}
+
+.fx-neon .fx-glow { animation-duration: 2s; }
+
+.game-mt .game-card-stakes { color: var(--mt-glow); }
+.game-pokiers .game-card-title { color: var(--gold); }
+
+@media (min-width: 700px) {
+  .game-card { flex-basis: 280px; }
 }
 
 .mode-card {

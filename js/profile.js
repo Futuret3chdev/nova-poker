@@ -63,9 +63,9 @@ export function applyAuthUser(user) {
     authId: user.id,
     authEmail: user.email || null
   };
-  if (user.avatarUrl && !p.avatarUrl) {
+  if (user.avatarUrl) {
     next.avatarUrl = user.avatarUrl;
-    next.avatarType = 'oauth';
+    next.avatarType = p.avatarType === 'upload' ? 'upload' : 'oauth';
   }
   saveProfile(next);
   return next;

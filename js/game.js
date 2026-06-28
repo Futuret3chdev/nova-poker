@@ -1,6 +1,7 @@
 import { createDeck, shuffle } from './deck.js';
 import { evaluateHand, compareHands } from './hand-evaluator.js';
 import { decideAction, BOT_NAMES } from './ai.js';
+import { botCharacterForName } from './avatar.js';
 
 const PHASES = ['preflop', 'flop', 'turn', 'river', 'showdown'];
 
@@ -42,7 +43,10 @@ export class PokerGame {
         folded: false, allIn: false, isDealer: false, isSB: false, isBB: false
       },
       ...botNames.map((name, i) => ({
-        id: i + 1, name, isHuman: false, chips: this.startingChips,
+        id: i + 1, name, isHuman: false,
+        avatarUrl: null,
+        character: botCharacterForName(name),
+        chips: this.startingChips,
         hole: [], betThisRound: 0, totalBet: 0, folded: false, allIn: false,
         isDealer: false, isSB: false, isBB: false
       }))

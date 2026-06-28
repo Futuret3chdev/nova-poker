@@ -49,29 +49,50 @@ export function renderCharacterSvg(character, size = 48) {
   </svg>`;
 }
 
+function avatarSizePx(size) {
+  if (size === 'large') return 96;
+  if (size === 'preview') return 120;
+  if (size === 'seat') return 56;
+  return 48;
+}
+
 export function renderAvatarHTML(player, opts = {}) {
   const size = opts.size || 'seat';
+  const svgPx = avatarSizePx(size);
   const cls = [
     'avatar',
     size === 'large' ? 'avatar-lg' : '',
     size === 'preview' ? 'avatar-preview' : '',
+    size === 'seat' ? 'avatar-seat' : '',
     player?.isHuman ? 'avatar-you' : '',
     player?.avatarUrl ? 'avatar-photo' : '',
     !player?.avatarUrl && player?.character ? 'avatar-character' : ''
   ].filter(Boolean).join(' ');
 
-  if (player?.avatarUrl) {
+  if (player?.avatarUrl && !opts.preferCharacter) {
     const src = escapeHtml(player.avatarUrl);
     const alt = escapeHtml(player?.name || 'Player');
-    return `<div class="${cls}"><img src="${src}" alt="${alt}" loading="lazy"></div>`;
+    return `<div class="${cls}"><img src="${src}" alt="${alt}" loading="eager" referrerpolicy="no-referrer" crossorigin="anonymous"></div>`;
   }
 
-  if (player?.character && opts.preferCharacter) {
-    return `<div class="${cls}">${renderCharacterSvg(player.character, size === 'large' ? 96 : 48)}</div>`;
+  if (player?.character) {
+    return `<div class="${cls}">${renderCharacterSvg(player.character, svgPx)}</div>`;
   }
 
   const initial = escapeHtml((player?.name || '?').charAt(0).toUpperCase());
   return `<div class="${cls}">${initial}</div>`;
+}
+
+export function botCharacterForName(name) {
+  const hash = String(name).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const { skinTones, hairColors, hairStyles, frames, accessories } = CHARACTER_PRESETS;
+  return {
+    skinTone: skinTones[hash % skinTones.length],
+    hairColor: hairColors[(hash * 3) % hairColors.length],
+    hairStyle: hairStyles[(hash * 7) % hairStyles.length],
+    frameColor: frames[(hash * 5) % frames.length],
+    accessory: accessories[(hash * 11) % accessories.length]
+  };
 }
 
 export function profileToPlayer(profile, isHuman = true) {

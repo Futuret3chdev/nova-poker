@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=12">
+  <link rel="stylesheet" href="/css/style.css?v=14">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -41,7 +41,6 @@
           <span><strong>MEMETORRENT</strong> $MT</span>
         </p>
         <button class="btn-play" id="btn-enter" type="button">Enter Casino</button>
-        <button type="button" class="btn-settings-title" id="btn-settings-title">⚙ Settings &amp; Sign In</button>
         <p class="lobby-hint">Free chips for practice · $MT requires Phantom/Solflare</p>
       </div>
       <footer class="lobby-footer">
@@ -59,6 +58,10 @@
           <h2>Casino Lobby</h2>
         </div>
         <div class="menu-header-actions">
+          <div class="header-profile" title="Your profile">
+            <div class="header-profile-avatar" id="menu-player-avatar"></div>
+            <span class="header-profile-name" id="menu-player-name">Player1</span>
+          </div>
           <button type="button" class="btn-settings" id="btn-settings">Settings</button>
           <button type="button" class="btn-wallet" id="btn-connect">Connect Wallet</button>
         </div>
@@ -84,15 +87,6 @@
 
       <p class="wallet-addr" id="wallet-address">Connect Phantom, Solflare or Backpack</p>
       <p class="wallet-note" id="wallet-note">Same wallet as Lucky Reels — on-chain $MEMETORRENT, no free tokens</p>
-
-      <div class="menu-player-bar" id="menu-player-bar">
-        <div class="menu-player-avatar" id="menu-player-avatar"></div>
-        <div class="menu-player-meta">
-          <span class="menu-player-name" id="menu-player-name">Player1</span>
-          <span class="menu-player-auth" id="menu-player-auth">Guest — tap Settings to sign in</span>
-        </div>
-        <button type="button" class="btn-secondary btn-settings-inline" id="btn-settings-inline">Settings</button>
-      </div>
 
       <div class="menu-scroll">
         <div id="menu-games" class="menu-section"></div>
@@ -151,8 +145,6 @@
           <span>Screen name</span>
           <input type="text" id="player-name" maxlength="16" placeholder="Your name" value="Player1">
         </label>
-        <button type="button" class="btn-secondary setup-profile-link" id="btn-setup-profile">Open Settings</button>
-
         <button class="btn-play" id="btn-launch" type="button">Take a Seat</button>
         <button type="button" class="btn-ghost setup-back" id="btn-setup-back">← Back to Lobby</button>
       </div>
@@ -370,7 +362,7 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=12"></script>
+  <script type="module" src="/js/main.js?v=14"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

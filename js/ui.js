@@ -129,9 +129,9 @@ export class PokerUI {
 
       seat.innerHTML = `
         ${turnTag}
+        <div class="seat-portrait">${renderAvatarHTML(p, { size: 'seat' })}</div>
         <div class="seat-cards">${cards || '<div class="card-slot"></div>'}</div>
         <div class="seat-info">
-          ${renderAvatarHTML(p)}
           <div class="seat-meta">
             <span class="seat-name">${p.name}</span>
             <span class="seat-chips">${this.formatChips(p.chips, state)}</span>

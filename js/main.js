@@ -1,23 +1,23 @@
-import { PokerGame } from './game.js?v=12';
-import { PokerUI } from './ui.js?v=12';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=12';
+import { PokerGame } from './game.js?v=14';
+import { PokerUI } from './ui.js?v=14';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=14';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=12';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=12';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=12';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=12';
+} from './wallet.js?v=14';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=14';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=14';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=14';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=12';
-import { renderAvatarHTML } from './avatar.js?v=12';
+} from './profile.js?v=14';
+import { renderAvatarHTML } from './avatar.js?v=14';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=12';
+} from './auth.js?v=14';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -305,7 +305,6 @@ function updateMenuPlayerBar() {
   const name = getDisplayName(profile);
   const avatarEl = document.getElementById('menu-player-avatar');
   const nameEl = document.getElementById('menu-player-name');
-  const authEl = document.getElementById('menu-player-auth');
   if (avatarEl) {
     avatarEl.innerHTML = renderAvatarHTML(
       { name, avatarUrl: profile.avatarUrl, character: profile.character, isHuman: true },
@@ -313,11 +312,6 @@ function updateMenuPlayerBar() {
     );
   }
   if (nameEl) nameEl.textContent = name;
-  if (authEl) {
-    authEl.textContent = isSignedIn(profile)
-      ? `Signed in with ${getAuthLabel(profile)}`
-      : 'Guest — tap Settings to sign in';
-  }
 }
 
 function switchSettingsTab(tab) {
@@ -405,9 +399,16 @@ function syncProfileToWallet() {
 }
 
 function saveProfileFromForm() {
-  const name = document.getElementById('profile-name')?.value?.trim() || 'Player1';
-  profile = updateProfile({
-    displayName: name,
+  profile = captureProfileFromForm();
+  syncProfileToWallet();
+  return profile;
+}
+
+function captureProfileFromForm() {
+  const nameEl = document.getElementById('profile-name');
+  if (!nameEl) return loadProfile();
+  return updateProfile({
+    displayName: nameEl.value?.trim() || getDisplayName(profile),
     character: {
       skinTone: document.querySelector('#skin-swatches .active')?.dataset.value || profile.character.skinTone,
       hairStyle: document.getElementById('profile-hair-style')?.value || profile.character.hairStyle,
@@ -416,12 +417,11 @@ function saveProfileFromForm() {
       accessory: document.getElementById('profile-accessory')?.value || profile.character.accessory
     }
   });
-  syncProfileToWallet();
-  return profile;
 }
 
 async function launchGame() {
   let mode = pendingMode || TABLE_MODES['free-ai'];
+  profile = captureProfileFromForm();
   const name = document.getElementById('player-name')?.value?.trim() || getDisplayName(profile) || 'Player1';
   profile = updateProfile({ displayName: name });
   wallet.screenName = name;
@@ -563,10 +563,12 @@ document.getElementById('btn-enter')?.addEventListener('click', async () => {
   showScreen('menu');
 });
 
-['btn-settings', 'btn-settings-inline', 'btn-settings-title', 'btn-setup-profile'].forEach((id) => {
-  document.getElementById(id)?.addEventListener('click', () => openSettingsScreen('account'));
+document.getElementById('btn-settings')?.addEventListener('click', () => openSettingsScreen('account'));
+document.getElementById('btn-settings-back')?.addEventListener('click', () => {
+  saveProfileFromForm();
+  showScreen('menu');
+  updateWalletUI();
 });
-document.getElementById('btn-settings-back')?.addEventListener('click', () => showScreen('menu'));
 
 document.querySelectorAll('.settings-tab').forEach((btn) => {
   btn.addEventListener('click', () => switchSettingsTab(btn.dataset.tab));

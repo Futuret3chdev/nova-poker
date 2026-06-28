@@ -1,26 +1,27 @@
-import { PokerGame } from './game.js?v=26';
-import { PokerUI } from './ui.js?v=26';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=26';
-import { artForGame } from './game-art.js?v=26';
-import { RouletteUI } from './roulette-ui.js?v=26';
-import { casinoSound, unlockAudio } from './sounds.js?v=26';
+import { PokerGame } from './game.js?v=27';
+import { PokerUI } from './ui.js?v=27';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=27';
+import { artForGame } from './game-art.js?v=27';
+import { applyGameScene } from './game-scene.js?v=27';
+import { RouletteUI } from './roulette-ui.js?v=27';
+import { casinoSound, unlockAudio } from './sounds.js?v=27';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress, adjustFreeChips
-} from './wallet.js?v=26';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=26';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=26';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=26';
+} from './wallet.js?v=27';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=27';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=27';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=27';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=26';
-import { renderAvatarHTML } from './avatar.js?v=26';
+} from './profile.js?v=27';
+import { renderAvatarHTML } from './avatar.js?v=27';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=26';
+} from './auth.js?v=27';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -290,6 +291,7 @@ function bindCarousel(wrap, carousel) {
 }
 
 function openLuckyReels() {
+  applyGameScene('reels-scene', 'lucky-reels');
   const frame = document.getElementById('reels-frame');
   if (frame) frame.src = LUCKY_REELS_URL;
   document.getElementById('btn-reels-open')?.setAttribute('href', LUCKY_REELS_URL);
@@ -297,6 +299,7 @@ function openLuckyReels() {
 }
 
 function openRoulette() {
+  applyGameScene('roulette-scene', 'roulette');
   unlockAudio();
   stopRoulette();
   rouletteUI = new RouletteUI({
@@ -407,6 +410,8 @@ function selectMode(mode, roomName = '') {
       mtWarn.textContent = '';
     }
   }
+
+  applyGameScene('setup-scene', mode.id);
 
   if (mode.multiplayer) {
     showScreen('multiplayer');
@@ -619,6 +624,7 @@ async function launchGame() {
     }
 
     currentMode = mode;
+    applyGameScene('poker-scene', mode.id);
     unlockAudio();
     pokerWasHumanTurn = false;
     showScreen('game');

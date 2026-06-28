@@ -11,3 +11,26 @@ export const MEMETORRENT = {
 };
 
 export const LUCKY_REELS_URL = 'https://lucky-reels-eosin.vercel.app';
+
+// OAuth — same structure & credentials as mte-pop/js/config.js (MTEPOP_CONFIG)
+export const MT_POKER_CONFIG = {
+  appUrl: 'https://poker-stars-wheat.vercel.app',
+  appName: 'MT Poker',
+  inviteMessage: 'Join me at MT Poker — Texas Hold\'em in the MT Ecosystem!',
+
+  // Redirect URI for Discord (paste exactly in Discord portal):
+  // https://poker-stars-wheat.vercel.app/auth/callback
+  googleClientId: '',
+  facebookAppId: '',
+  discordClientId: '1348440616442265641',
+  telegramBotUsername: 'mod_futuret3ch_bot',
+  telegramAuthMode: 'deeplink',
+  // Token NEVER goes in this file. Set in Vercel → Environment Variables:
+  //   TELEGRAM_BOT_TOKEN
+  //   TELEGRAM_WEBHOOK_SECRET
+  //   DISCORD_CLIENT_SECRET (optional — PKCE public client works without it)
+  // Bot /start handler: scripts/mtpoker-bot-start-handler.js (mtpoker_<code>_<sig>)
+  // Vercel env: TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET, MT_POKER_APP_URL
+
+  demoAuth: false
+};

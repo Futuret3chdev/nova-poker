@@ -1209,6 +1209,8 @@ html, body {
 }
 .auth-btn.discord:hover { border-color: #5865f2; }
 .auth-btn.facebook:hover { border-color: #1877f2; }
+.auth-btn.telegram:hover { border-color: #29a0dc; }
+.auth-btn.google:disabled { opacity: 0.5; cursor: not-allowed; }
 .auth-icon { font-size: 1.1rem; }
 .profile-signout { align-self: center; font-size: 0.82rem; }
 .avatar-upload-row {

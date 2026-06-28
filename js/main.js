@@ -1,23 +1,23 @@
-import { PokerGame } from './game.js?v=10';
-import { PokerUI } from './ui.js?v=10';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=10';
+import { PokerGame } from './game.js?v=11';
+import { PokerUI } from './ui.js?v=11';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=11';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=10';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=10';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=10';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=10';
+} from './wallet.js?v=11';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=11';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=11';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=11';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=10';
-import { renderAvatarHTML } from './avatar.js?v=10';
+} from './profile.js?v=11';
+import { renderAvatarHTML } from './avatar.js?v=11';
 import {
-  handleAuthCallback, initGoogleSignIn, signInDiscord, signInFacebook,
-  initTelegramWidget, signOut, getAuthLabel
-} from './auth.js?v=10';
+  handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
+  renderTelegramWidget, renderGoogleButton, signOut, getAuthLabel
+} from './auth.js?v=11';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -322,6 +322,13 @@ function fillSelect(id, options, selected) {
   }).join('');
 }
 
+function onAuthSuccess(p, label) {
+  profile = p;
+  syncProfileToWallet();
+  renderProfileScreen();
+  toast(`Signed in with ${label || getAuthLabel(p)}`);
+}
+
 function openProfileScreen() {
   profile = loadProfile();
   document.getElementById('profile-name').value = getDisplayName(profile);
@@ -343,15 +350,15 @@ function openProfileScreen() {
   renderProfilePreview();
   showScreen('profile');
 
-  initGoogleSignIn(
+  renderGoogleButton(
     document.getElementById('google-signin-btn'),
-    (p) => { profile = p; syncProfileToWallet(); renderProfileScreen(); toast(`Signed in with ${getAuthLabel(p)}`); },
+    (p) => onAuthSuccess(p, 'Gmail'),
     (err) => toast(err.message)
   );
-  initTelegramWidget(
+  renderTelegramWidget(
     document.getElementById('telegram-signin-btn'),
-    (p) => { profile = p; syncProfileToWallet(); renderProfileScreen(); toast(`Signed in with Telegram`); },
-    (err) => toast(err.message)
+    (p) => onAuthSuccess(p, 'Telegram'),
+    (err) => { if (err.message && !err.message.includes('finish link')) toast(err.message); }
   );
 }
 
@@ -517,7 +524,9 @@ async function resumeWalletIfNeeded() {
 
 document.getElementById('btn-enter')?.addEventListener('click', async () => {
   try {
-    profile = await handleAuthCallback() || loadProfile();
+    const p = await handleAuthCallback((prof) => onAuthSuccess(prof, 'Telegram'));
+    if (p) profile = p;
+    else profile = loadProfile();
     syncProfileToWallet();
   } catch (err) {
     toast(err.message);
@@ -558,14 +567,21 @@ document.getElementById('btn-avatar-remove')?.addEventListener('click', () => {
   toast('Photo removed');
 });
 
-document.getElementById('btn-auth-discord')?.addEventListener('click', () => {
-  try { signInDiscord(); } catch (err) { toast(err.message); }
+document.getElementById('btn-auth-discord')?.addEventListener('click', async () => {
+  try {
+    await signInDiscord(
+      (p) => onAuthSuccess(p, 'Discord'),
+      (err) => toast(err.message)
+    );
+  } catch (err) {
+    toast(err.message);
+  }
 });
 
 document.getElementById('btn-auth-facebook')?.addEventListener('click', async () => {
   try {
-    profile = await signInFacebook(
-      (p) => { profile = p; syncProfileToWallet(); renderProfileScreen(); toast('Signed in with Facebook'); },
+    await signInFacebook(
+      (p) => onAuthSuccess(p, 'Facebook'),
       (err) => toast(err.message)
     );
   } catch (err) {
@@ -642,12 +658,12 @@ document.getElementById('btn-join-room')?.addEventListener('click', () => {
 document.getElementById('btn-multi-back')?.addEventListener('click', () => showScreen('menu'));
 
 setupInstallHint();
-handleAuthCallback().then((p) => {
-  if (p) {
-    profile = p;
-    syncProfileToWallet();
-    updateWalletUI();
-  }
+bootAuthProviders(
+  (p) => { profile = p; syncProfileToWallet(); updateWalletUI(); },
+  (err) => console.warn('Auth:', err.message)
+);
+handleAuthCallback((p) => onAuthSuccess(p, 'Telegram')).then((p) => {
+  if (p) profile = p;
 }).catch((err) => toast(err.message));
 resumeWalletIfNeeded();
 updateWalletUI();

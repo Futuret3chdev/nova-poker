@@ -1,7 +1,8 @@
-const CACHE = 'mt-poker-v10';
+const CACHE = 'mt-poker-v11';
 const SHELL = [
   '/',
   '/index.html',
+  '/auth/callback.html',
   '/css/style.css',
   '/js/main.js',
   '/manifest.json',

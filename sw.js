@@ -1,4 +1,4 @@
-const CACHE = 'mt-poker-v16';
+const CACHE = 'mt-poker-v17';
 const SHELL = [
   '/',
   '/index.html',

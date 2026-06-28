@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Nova Poker">
+  <title>Nova Poker — Texas Hold'em</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css?v=1">
+</head>
+<body>
+  <div id="app">
+    <section id="title-screen" class="screen active">
+      <div class="lobby-bg"></div>
+      <div class="lobby-content">
+        <div class="brand">
+          <div class="brand-star">★</div>
+          <h1>NOVA POKER</h1>
+          <p class="brand-sub">Texas Hold'em · No Limit</p>
+        </div>
+
+        <div class="lobby-card">
+          <h2>Cash Game</h2>
+          <div class="table-info">
+            <span>6-Max</span>
+            <span>Blinds $25 / $50</span>
+            <span>Buy-in $5,000</span>
+          </div>
+          <label class="name-field">
+            <span>Screen name</span>
+            <input type="text" id="player-name" maxlength="16" placeholder="Enter your name" value="Player1">
+          </label>
+          <button class="btn-play" id="btn-play" type="button">Take a Seat</button>
+        </div>
+
+        <p class="lobby-hint">Play against 5 AI opponents · Full betting rounds · Real hand rankings</p>
+      </div>
+      <footer class="lobby-footer">Nova Poker v1</footer>
+    </section>
+
+    <section id="game-screen" class="screen">
+      <header class="game-header">
+        <button type="button" class="btn-ghost" id="btn-lobby">← Lobby</button>
+        <div class="header-center">
+          <span id="phase-label">Pre-Flop</span>
+          <span class="hand-num" id="hand-num"></span>
+        </div>
+        <div class="header-pot">Pot <strong id="pot-amount">$0</strong></div>
+      </header>
+
+      <div class="table-wrap">
+        <div id="poker-table" class="poker-table">
+          <div class="table-felt">
+            <div class="table-logo">NOVA</div>
+            <div id="community-cards" class="community-cards"></div>
+            <div id="seats" class="seats"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="hand-strength" class="hand-strength"></div>
+      <div id="game-message" class="game-message">Waiting for action…</div>
+
+      <div id="action-panel" class="action-panel">
+        <button type="button" class="act fold" id="btn-fold">Fold</button>
+        <button type="button" class="act check" id="btn-check">Check</button>
+        <button type="button" class="act call" id="btn-call">Call</button>
+        <div class="raise-group">
+          <input type="range" id="raise-slider" min="0" max="1000" step="50">
+          <span id="raise-value">$100</span>
+          <button type="button" class="act raise" id="btn-raise">Raise</button>
+        </div>
+        <button type="button" class="act allin" id="btn-allin">All-In</button>
+      </div>
+
+      <button type="button" class="btn-next" id="btn-next-hand">Deal Next Hand</button>
+    </section>
+  </div>
+
+  <script type="module" src="/js/main.js?v=1"></script>
+</body>
+</html>

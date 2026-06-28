@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=11">
+  <link rel="stylesheet" href="/css/style.css?v=12">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -41,6 +41,7 @@
           <span><strong>MEMETORRENT</strong> $MT</span>
         </p>
         <button class="btn-play" id="btn-enter" type="button">Enter Casino</button>
+        <button type="button" class="btn-settings-title" id="btn-settings-title">⚙ Settings &amp; Sign In</button>
         <p class="lobby-hint">Free chips for practice · $MT requires Phantom/Solflare</p>
       </div>
       <footer class="lobby-footer">
@@ -58,7 +59,7 @@
           <h2>Casino Lobby</h2>
         </div>
         <div class="menu-header-actions">
-          <button type="button" class="btn-profile" id="btn-profile" title="Your profile">👤</button>
+          <button type="button" class="btn-settings" id="btn-settings">Settings</button>
           <button type="button" class="btn-wallet" id="btn-connect">Connect Wallet</button>
         </div>
       </header>
@@ -83,6 +84,15 @@
 
       <p class="wallet-addr" id="wallet-address">Connect Phantom, Solflare or Backpack</p>
       <p class="wallet-note" id="wallet-note">Same wallet as Lucky Reels — on-chain $MEMETORRENT, no free tokens</p>
+
+      <div class="menu-player-bar" id="menu-player-bar">
+        <div class="menu-player-avatar" id="menu-player-avatar"></div>
+        <div class="menu-player-meta">
+          <span class="menu-player-name" id="menu-player-name">Player1</span>
+          <span class="menu-player-auth" id="menu-player-auth">Guest — tap Settings to sign in</span>
+        </div>
+        <button type="button" class="btn-secondary btn-settings-inline" id="btn-settings-inline">Settings</button>
+      </div>
 
       <div class="menu-scroll">
         <div id="menu-games" class="menu-section"></div>
@@ -141,7 +151,7 @@
           <span>Screen name</span>
           <input type="text" id="player-name" maxlength="16" placeholder="Your name" value="Player1">
         </label>
-        <button type="button" class="btn-secondary setup-profile-link" id="btn-setup-profile">Customise avatar</button>
+        <button type="button" class="btn-secondary setup-profile-link" id="btn-setup-profile">Open Settings</button>
 
         <button class="btn-play" id="btn-launch" type="button">Take a Seat</button>
         <button type="button" class="btn-ghost setup-back" id="btn-setup-back">← Back to Lobby</button>
@@ -203,60 +213,83 @@
       </footer>
     </section>
 
-    <!-- PROFILE -->
-    <section id="profile-screen" class="screen">
+    <!-- SETTINGS -->
+    <section id="settings-screen" class="screen">
       <header class="menu-header">
-        <button type="button" class="btn-ghost" id="btn-profile-back">←</button>
+        <button type="button" class="btn-ghost" id="btn-settings-back">←</button>
         <div class="menu-header-center">
-          <span class="eco-pill">YOUR SEAT</span>
-          <h2>Player Profile</h2>
+          <span class="eco-pill">ACCOUNT</span>
+          <h2>Settings</h2>
         </div>
         <span class="profile-auth-badge" id="profile-auth-badge">Guest</span>
       </header>
 
+      <div class="settings-tabs">
+        <button type="button" class="settings-tab active" data-tab="account">Sign In</button>
+        <button type="button" class="settings-tab" data-tab="avatar">Avatar</button>
+        <button type="button" class="settings-tab" data-tab="character">Character</button>
+      </div>
+
       <div class="profile-scroll">
-        <div class="profile-hero">
-          <div class="profile-avatar-wrap" id="profile-avatar-preview"></div>
-          <p class="profile-hint">Your photo appears on your face at the poker table</p>
-        </div>
-
-        <div class="profile-section">
-          <h3>Sign in</h3>
-          <p class="profile-desc">Link Discord, Telegram, Gmail, or Facebook to save your profile</p>
-          <div class="auth-grid">
-            <div id="google-signin-btn" class="auth-slot"></div>
-            <button type="button" class="auth-btn discord" id="btn-auth-discord">
-              <span class="auth-icon">💬</span> Discord
-            </button>
-            <div id="telegram-signin-btn" class="auth-slot auth-telegram"></div>
-            <button type="button" class="auth-btn facebook" id="btn-auth-facebook">
-              <span class="auth-icon">📘</span> Facebook
-            </button>
+        <!-- TAB: Sign In -->
+        <div class="settings-panel active" id="settings-panel-account">
+          <div class="profile-hero">
+            <div class="profile-avatar-wrap" id="profile-avatar-preview"></div>
+            <p class="profile-player-name" id="settings-display-name">Player1</p>
+            <p class="profile-hint">Sign in to save your profile across devices</p>
           </div>
-          <button type="button" class="btn-ghost profile-signout" id="btn-auth-signout" hidden>Sign out</button>
+
+          <div class="profile-section">
+            <h3>Sign in with</h3>
+            <p class="profile-desc">Discord &amp; Telegram work now. Add Gmail/Facebook IDs in config.js when ready.</p>
+            <div class="auth-list">
+              <div id="google-signin-btn" class="auth-slot-full"></div>
+              <button type="button" class="auth-btn auth-btn-full google" id="btn-auth-google">
+                <span class="auth-icon">📧</span> Sign in with Gmail
+              </button>
+              <button type="button" class="auth-btn auth-btn-full discord" id="btn-auth-discord">
+                <span class="auth-icon">💬</span> Sign in with Discord
+              </button>
+              <button type="button" class="auth-btn auth-btn-full telegram" id="btn-auth-telegram">
+                <span class="auth-icon">✈️</span> Sign in with Telegram
+              </button>
+              <button type="button" class="auth-btn auth-btn-full facebook" id="btn-auth-facebook">
+                <span class="auth-icon">📘</span> Sign in with Facebook
+              </button>
+            </div>
+            <button type="button" class="btn-ghost profile-signout" id="btn-auth-signout" hidden>Sign out</button>
+          </div>
         </div>
 
-        <div class="profile-section">
-          <h3>Your photo</h3>
-          <div class="avatar-upload-row">
-            <label class="btn-secondary avatar-upload-btn">
-              Upload picture
-              <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" hidden>
+        <!-- TAB: Avatar -->
+        <div class="settings-panel" id="settings-panel-avatar" hidden>
+
+          <div class="profile-section">
+            <h3>Table photo</h3>
+            <p class="profile-desc">Your uploaded picture shows on your face at the poker table</p>
+            <div class="profile-avatar-wrap settings-avatar-preview" id="settings-avatar-preview"></div>
+            <div class="avatar-upload-row">
+              <label class="btn-secondary avatar-upload-btn">
+                Upload picture
+                <input type="file" id="avatar-file" accept="image/jpeg,image/png,image/webp" hidden>
+              </label>
+              <button type="button" class="btn-ghost" id="btn-avatar-remove">Remove photo</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Character -->
+        <div class="settings-panel" id="settings-panel-character" hidden>
+          <div class="profile-section">
+            <h3>Character &amp; name</h3>
+            <p class="profile-desc">Used when no photo is uploaded — or as your seat frame colour</p>
+
+            <label class="profile-field">
+              <span>Display name (at the table)</span>
+              <input type="text" id="profile-name" maxlength="16" placeholder="Table name">
             </label>
-            <button type="button" class="btn-ghost" id="btn-avatar-remove">Remove photo</button>
-          </div>
-        </div>
 
-        <div class="profile-section">
-          <h3>Character style</h3>
-          <p class="profile-desc">Used when no photo is uploaded — or as your table frame</p>
-
-          <label class="profile-field">
-            <span>Display name</span>
-            <input type="text" id="profile-name" maxlength="16" placeholder="Table name">
-          </label>
-
-          <div class="customize-grid">
+            <div class="customize-grid">
             <label class="profile-field">
               <span>Skin tone</span>
               <div class="swatch-row" id="skin-swatches"></div>
@@ -277,10 +310,11 @@
               <span>Accessory</span>
               <select id="profile-accessory"></select>
             </label>
+            </div>
           </div>
         </div>
 
-        <button type="button" class="btn-play profile-save" id="btn-profile-save">Save &amp; return to lobby</button>
+        <button type="button" class="btn-play profile-save" id="btn-settings-save">Save &amp; return to lobby</button>
       </div>
 
       <footer class="menu-footer">
@@ -336,7 +370,7 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=11"></script>
+  <script type="module" src="/js/main.js?v=12"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

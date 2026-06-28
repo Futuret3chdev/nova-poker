@@ -1,23 +1,23 @@
-import { PokerGame } from './game.js?v=11';
-import { PokerUI } from './ui.js?v=11';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=11';
+import { PokerGame } from './game.js?v=12';
+import { PokerUI } from './ui.js?v=12';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=12';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=11';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=11';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=11';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=11';
+} from './wallet.js?v=12';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=12';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=12';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=12';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=11';
-import { renderAvatarHTML } from './avatar.js?v=11';
+} from './profile.js?v=12';
+import { renderAvatarHTML } from './avatar.js?v=12';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
-  renderTelegramWidget, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=11';
+  signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
+} from './auth.js?v=12';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -86,6 +86,7 @@ async function updateWalletUI() {
   }
 
   renderSetupAvatarPreview();
+  updateMenuPlayerBar();
 
   document.getElementById('hud-mt')?.replaceChildren(
     document.createTextNode(formatMt(wallet.mtBalance))
@@ -279,8 +280,6 @@ function renderSetupAvatarPreview() {
 }
 
 function renderProfilePreview() {
-  const el = document.getElementById('profile-avatar-preview');
-  if (!el) return;
   const name = document.getElementById('profile-name')?.value?.trim() || getDisplayName(profile);
   const character = {
     skinTone: document.querySelector('#skin-swatches .active')?.dataset.value || profile.character.skinTone,
@@ -290,10 +289,46 @@ function renderProfilePreview() {
     accessory: document.getElementById('profile-accessory')?.value || profile.character.accessory
   };
   const avatarUrl = profile.avatarUrl;
-  el.innerHTML = renderAvatarHTML(
+  const html = renderAvatarHTML(
     { name, avatarUrl, character, isHuman: true },
     { size: 'large', preferCharacter: !avatarUrl }
   );
+  ['profile-avatar-preview', 'settings-avatar-preview'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  });
+  const nameEl = document.getElementById('settings-display-name');
+  if (nameEl) nameEl.textContent = name;
+}
+
+function updateMenuPlayerBar() {
+  const name = getDisplayName(profile);
+  const avatarEl = document.getElementById('menu-player-avatar');
+  const nameEl = document.getElementById('menu-player-name');
+  const authEl = document.getElementById('menu-player-auth');
+  if (avatarEl) {
+    avatarEl.innerHTML = renderAvatarHTML(
+      { name, avatarUrl: profile.avatarUrl, character: profile.character, isHuman: true },
+      { size: 'preview', preferCharacter: !profile.avatarUrl }
+    );
+  }
+  if (nameEl) nameEl.textContent = name;
+  if (authEl) {
+    authEl.textContent = isSignedIn(profile)
+      ? `Signed in with ${getAuthLabel(profile)}`
+      : 'Guest — tap Settings to sign in';
+  }
+}
+
+function switchSettingsTab(tab) {
+  document.querySelectorAll('.settings-tab').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  document.querySelectorAll('.settings-panel').forEach((panel) => {
+    const isActive = panel.id === `settings-panel-${tab}`;
+    panel.hidden = !isActive;
+    panel.classList.toggle('active', isActive);
+  });
 }
 
 function buildSwatches(containerId, values, selected, onPick) {
@@ -329,7 +364,7 @@ function onAuthSuccess(p, label) {
   toast(`Signed in with ${label || getAuthLabel(p)}`);
 }
 
-function openProfileScreen() {
+function openSettingsScreen(tab = 'account') {
   profile = loadProfile();
   document.getElementById('profile-name').value = getDisplayName(profile);
   fillSelect('profile-hair-style', CHARACTER_PRESETS.hairStyles, profile.character.hairStyle);
@@ -342,23 +377,14 @@ function openProfileScreen() {
   buildSwatches('hair-swatches', CHARACTER_PRESETS.hairColors, profile.character.hairColor, () => {});
   buildSwatches('frame-swatches', CHARACTER_PRESETS.frames, profile.character.frameColor, () => {});
 
-  const badge = document.getElementById('profile-auth-badge');
-  const signout = document.getElementById('btn-auth-signout');
-  if (badge) badge.textContent = isSignedIn(profile) ? getAuthLabel(profile) : 'Guest';
-  if (signout) signout.hidden = !isSignedIn(profile);
-
-  renderProfilePreview();
-  showScreen('profile');
+  renderProfileScreen();
+  switchSettingsTab(tab);
+  showScreen('settings');
 
   renderGoogleButton(
     document.getElementById('google-signin-btn'),
     (p) => onAuthSuccess(p, 'Gmail'),
     (err) => toast(err.message)
-  );
-  renderTelegramWidget(
-    document.getElementById('telegram-signin-btn'),
-    (p) => onAuthSuccess(p, 'Telegram'),
-    (err) => { if (err.message && !err.message.includes('finish link')) toast(err.message); }
   );
 }
 
@@ -537,11 +563,16 @@ document.getElementById('btn-enter')?.addEventListener('click', async () => {
   showScreen('menu');
 });
 
-document.getElementById('btn-profile')?.addEventListener('click', openProfileScreen);
-document.getElementById('btn-profile-back')?.addEventListener('click', () => showScreen('menu'));
-document.getElementById('btn-setup-profile')?.addEventListener('click', openProfileScreen);
+['btn-settings', 'btn-settings-inline', 'btn-settings-title', 'btn-setup-profile'].forEach((id) => {
+  document.getElementById(id)?.addEventListener('click', () => openSettingsScreen('account'));
+});
+document.getElementById('btn-settings-back')?.addEventListener('click', () => showScreen('menu'));
 
-document.getElementById('btn-profile-save')?.addEventListener('click', () => {
+document.querySelectorAll('.settings-tab').forEach((btn) => {
+  btn.addEventListener('click', () => switchSettingsTab(btn.dataset.tab));
+});
+
+document.getElementById('btn-settings-save')?.addEventListener('click', () => {
   saveProfileFromForm();
   toast('Profile saved');
   showScreen('menu');
@@ -565,6 +596,31 @@ document.getElementById('btn-avatar-remove')?.addEventListener('click', () => {
   profile = removeAvatar();
   renderProfilePreview();
   toast('Photo removed');
+});
+
+document.getElementById('btn-auth-google')?.addEventListener('click', async () => {
+  try {
+    await signInGoogle(
+      (p) => onAuthSuccess(p, 'Gmail'),
+      (err) => toast(err.message)
+    );
+  } catch (err) {
+    toast(err.message);
+  }
+});
+
+document.getElementById('btn-auth-telegram')?.addEventListener('click', async () => {
+  try {
+    await signInTelegram(
+      (p) => onAuthSuccess(p, 'Telegram'),
+      (err) => {
+        if (err.message?.includes('Open @')) toast('Telegram opened — tap Start in the bot, then finish sign-in');
+        else toast(err.message);
+      }
+    );
+  } catch (err) {
+    toast(err.message);
+  }
 });
 
 document.getElementById('btn-auth-discord')?.addEventListener('click', async () => {

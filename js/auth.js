@@ -86,12 +86,15 @@ function initGoogle(onSuccess, onError) {
 export function renderGoogleButton(container, onSuccess, onError) {
   if (!container) return;
   const clientId = MT_POKER_CONFIG.googleClientId;
+  const fallbackBtn = document.getElementById('btn-auth-google');
   if (!clientId) {
-    container.innerHTML = '<button type="button" class="auth-btn google" disabled>Gmail (not configured)</button>';
+    container.innerHTML = '';
+    if (fallbackBtn) fallbackBtn.hidden = false;
     return;
   }
   if (window.google?.accounts?.id) {
     container.innerHTML = '';
+    if (fallbackBtn) fallbackBtn.hidden = true;
     initGoogle(onSuccess, onError);
     google.accounts.id.renderButton(container, {
       type: 'standard',
@@ -99,9 +102,30 @@ export function renderGoogleButton(container, onSuccess, onError) {
       size: 'large',
       shape: 'pill',
       text: 'signin_with',
-      width: 280
+      width: '100%'
     });
   }
+}
+
+export async function signInGoogle(onSuccess, onError) {
+  const clientId = MT_POKER_CONFIG.googleClientId;
+  if (!clientId) {
+    const demo = demoSignIn('google');
+    if (demo.ok) { onSuccess?.(demo.profile); return demo.profile; }
+    throw new Error('Gmail sign-in: add googleClientId in js/config.js');
+  }
+  if (!window.google?.accounts?.id) {
+    throw new Error('Google sign-in still loading — try again');
+  }
+  return new Promise((resolve) => {
+    google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        const err = new Error('Tap the Gmail button to sign in');
+        onError?.(err);
+        resolve(null);
+      }
+    });
+  });
 }
 
 function initFacebook() {
@@ -201,45 +225,19 @@ function signInTelegramUser(tgUser, onSuccess) {
   return { ok: true, profile };
 }
 
-export function renderTelegramWidget(container, onSuccess, onError) {
-  if (!container) return;
+export async function signInTelegram(onSuccess, onError) {
   const bot = MT_POKER_CONFIG.telegramBotUsername;
   const mode = MT_POKER_CONFIG.telegramAuthMode || 'deeplink';
-
   if (!bot) {
-    container.innerHTML = '';
-    return;
+    const demo = demoSignIn('telegram');
+    if (demo.ok) { onSuccess?.(demo.profile); return demo.profile; }
+    throw new Error('Telegram not configured');
   }
-
   if (mode === 'deeplink') {
-    container.innerHTML = `<button type="button" class="auth-btn telegram" id="btn-telegram-deeplink">
-      <span class="auth-icon">✈️</span> Telegram
-    </button>`;
-    container.querySelector('#btn-telegram-deeplink')?.addEventListener('click', async () => {
-      try {
-        await startTelegramDeepLink(onSuccess, onError);
-      } catch (err) {
-        onError?.(err);
-      }
-    });
-    return;
+    await startTelegramDeepLink(onSuccess, onError);
+    return null;
   }
-
-  window.onTelegramAuth = (user) => {
-    const result = signInTelegramUser(user, onSuccess);
-    if (!result.ok) onError?.(new Error(result.error));
-  };
-
-  container.innerHTML = '';
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = 'https://telegram.org/js/telegram-widget.js?22';
-  script.setAttribute('data-telegram-login', bot.replace('@', ''));
-  script.setAttribute('data-size', 'large');
-  script.setAttribute('data-radius', '8');
-  script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-  script.setAttribute('data-request-access', 'write');
-  container.appendChild(script);
+  throw new Error('Use the Telegram widget to sign in');
 }
 
 export async function startTelegramDeepLink(onSuccess, onError) {

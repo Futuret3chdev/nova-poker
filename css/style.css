@@ -687,7 +687,7 @@ html, body {
 }
 
 /* ── Menu screen ── */
-#menu-screen, #setup-screen, #multiplayer-screen, #profile-screen {
+#menu-screen, #setup-screen, #multiplayer-screen, #settings-screen {
   background: var(--bg);
   flex-direction: column;
 }
@@ -1106,25 +1106,115 @@ html, body {
   min-height: 2.5em;
 }
 
-/* Profile & auth */
+/* Settings & auth */
 .menu-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.btn-profile {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.btn-settings {
+  padding: 8px 12px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: var(--bg);
-  font-size: 1.1rem;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+}
+.btn-settings:hover { border-color: var(--gold); color: var(--gold); }
+.btn-settings-title {
+  margin-top: 12px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-settings-title:hover { border-color: var(--gold); }
+.menu-player-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  margin: 0 14px 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
-.btn-profile:hover { border-color: var(--gold); }
+.menu-player-avatar { width: 48px; height: 48px; flex-shrink: 0; }
+.menu-player-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.menu-player-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.menu-player-auth {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.btn-settings-inline {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+}
+.settings-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.settings-tab {
+  flex: 1;
+  padding: 12px 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.settings-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+.settings-panel { display: block; }
+.settings-panel[hidden] { display: none !important; }
+.profile-player-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.2rem;
+  margin: 0;
+}
+.auth-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.auth-btn-full {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 14px 16px;
+  font-size: 1rem;
+}
+.auth-slot-full { width: 100%; }
+.auth-btn.google { border-color: rgba(234, 67, 53, 0.4); }
+.auth-btn.google:hover { border-color: #ea4335; background: rgba(234, 67, 53, 0.1); }
+.auth-btn.telegram:hover { border-color: #29a0dc; background: rgba(41, 160, 220, 0.1); }
+.settings-avatar-preview { margin: 12px auto; }
 
 .profile-scroll {
   flex: 1;

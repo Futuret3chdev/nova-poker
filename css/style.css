@@ -29,6 +29,47 @@ html, body {
 
 #app { height: 100dvh; }
 
+.install-hint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 500;
+  background: linear-gradient(180deg, #1a1030, #0d1117);
+  border-bottom: 1px solid rgba(124, 77, 255, 0.4);
+  padding: 12px 14px max(12px, env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+.install-hint[hidden] { display: none !important; }
+.install-hint p {
+  flex: 1;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text);
+  margin: 0;
+}
+.install-hint .ios-share {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  font-weight: 600;
+}
+.install-hint button {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: var(--mt-purple);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
 .screen {
   display: none;
   height: 100%;

@@ -36,22 +36,14 @@ export async function connectWalletType(type) {
   if (type === 'phantom') {
     provider = window.phantom?.solana;
     if (!provider?.isPhantom) {
-      if (/iPhone|Android/i.test(navigator.userAgent)) {
-        window.location.href = `https://phantom.app/ul/browse/${encodeURIComponent(window.location.href)}`;
-        throw new Error('Opening Phantom…');
-      }
       window.open('https://phantom.app/', '_blank');
-      throw new Error('Phantom not installed');
+      throw new Error('Open Phantom app, then use its browser to visit MT Poker');
     }
   } else if (type === 'solflare') {
     provider = window.solflare;
     if (!provider) {
-      if (/iPhone|Android/i.test(navigator.userAgent)) {
-        window.location.href = `https://solflare.com/ul/browse/${encodeURIComponent(window.location.href)}`;
-        throw new Error('Opening Solflare…');
-      }
       window.open('https://solflare.com/', '_blank');
-      throw new Error('Solflare not installed');
+      throw new Error('Open Solflare app, then use its browser to visit MT Poker');
     }
   } else if (type === 'backpack') {
     provider = window.backpack;

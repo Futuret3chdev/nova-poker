@@ -1,14 +1,38 @@
-import { PokerGame } from './game.js?v=5';
-import { PokerUI } from './ui.js?v=5';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=5';
+import { PokerGame } from './game.js?v=6';
+import { PokerUI } from './ui.js?v=6';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=6';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=5';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=5';
-import { detectWallets, sendMTToTreasury, walletInstallUrl } from './solana-wallet.js?v=5';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=5';
+} from './wallet.js?v=6';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=6';
+import { detectWallets, sendMTToTreasury, walletInstallUrl } from './solana-wallet.js?v=6';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=6';
+
+function isStandaloneApp() {
+  return window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true
+    || document.referrer.includes('android-app://');
+}
+
+function setupInstallHint() {
+  const hint = document.getElementById('install-hint');
+  const close = document.getElementById('install-hint-close');
+  if (!hint) return;
+
+  const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const dismissed = localStorage.getItem('mt-poker-install-hint') === '1';
+
+  if (mobile && !isStandaloneApp() && !dismissed) {
+    hint.hidden = false;
+  }
+
+  close?.addEventListener('click', () => {
+    hint.hidden = true;
+    localStorage.setItem('mt-poker-install-hint', '1');
+  });
+}
 
 let game = null;
 let ui = null;
@@ -400,6 +424,7 @@ document.getElementById('btn-join-room')?.addEventListener('click', () => {
 
 document.getElementById('btn-multi-back')?.addEventListener('click', () => showScreen('menu'));
 
+setupInstallHint();
 updateWalletUI();
 renderMenu();
 showScreen('title');

@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=2">
+  <link rel="stylesheet" href="/css/style.css?v=3">
 </head>
 <body>
   <div id="app">
@@ -32,7 +32,7 @@
           <span><strong>MEMETORRENT</strong> $MT</span>
         </p>
         <button class="btn-play" id="btn-enter" type="button">Enter Casino</button>
-        <p class="lobby-hint">Free play · $MT stakes · AI &amp; Multiplayer</p>
+        <p class="lobby-hint">Free chips for practice · $MT requires Phantom/Solflare</p>
       </div>
       <footer class="lobby-footer">
         <span>MT ECOSYSTEM</span>
@@ -53,8 +53,8 @@
 
       <div class="wallet-bar">
         <div class="wallet-stat">
-          <span class="stat-label">$MT Balance</span>
-          <span class="stat-value mt" id="hud-mt">2,500</span>
+          <span class="stat-label">Casino $MT</span>
+          <span class="stat-value mt" id="hud-mt">0</span>
         </div>
         <div class="wallet-stat">
           <span class="stat-label">Free Chips</span>
@@ -64,10 +64,12 @@
           <span class="stat-label">Wins</span>
           <span class="stat-value" id="hud-wins">0</span>
         </div>
-        <button type="button" class="btn-bonus" id="btn-daily">Daily Bonus</button>
+        <button type="button" class="btn-load" id="btn-load-mt" disabled>Load $MT</button>
+        <button type="button" class="btn-bonus" id="btn-daily">Free Chips</button>
       </div>
 
-      <p class="wallet-addr" id="wallet-address">Connect wallet to play $MT</p>
+      <p class="wallet-addr" id="wallet-address">Phantom or Solflare required for $MT</p>
+      <p class="wallet-note" id="wallet-note">$MT is never given free — connect wallet &amp; load funds to play stakes</p>
 
       <div class="menu-scroll">
         <div id="menu-modes"></div>
@@ -184,6 +186,41 @@
 
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="/js/main.js?v=2"></script>
+  <!-- Wallet picker -->
+  <div id="wallet-modal" class="modal" hidden>
+    <div class="modal-backdrop" id="wallet-modal-backdrop"></div>
+    <div class="modal-card">
+      <h3>Connect Wallet</h3>
+      <p class="modal-desc">$MT stakes require Phantom or Solflare. No free $MT — load your own funds.</p>
+      <button type="button" class="wallet-option phantom" id="btn-phantom">
+        <span class="wallet-icon">👻</span>
+        <span>Phantom</span>
+      </button>
+      <button type="button" class="wallet-option solflare" id="btn-solflare">
+        <span class="wallet-icon">🔥</span>
+        <span>Solflare</span>
+      </button>
+      <button type="button" class="btn-ghost modal-close" id="btn-wallet-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Load $MT -->
+  <div id="load-modal" class="modal" hidden>
+    <div class="modal-backdrop" id="load-modal-backdrop"></div>
+    <div class="modal-card">
+      <h3>Load $MT</h3>
+      <p class="modal-desc">Transfer MemeTorrent $MT from your wallet to the casino. Funds are required to play stakes tables.</p>
+      <p class="load-addr" id="load-wallet-addr"></p>
+      <label class="name-field">
+        <span>Amount to load (MT)</span>
+        <input type="number" id="load-amount" min="100" step="50" value="500" placeholder="Min 100 MT">
+      </label>
+      <p class="load-hint" id="load-hint"></p>
+      <button type="button" class="btn-play" id="btn-confirm-load">Confirm Load</button>
+      <button type="button" class="btn-ghost modal-close" id="btn-load-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <script type="module" src="/js/main.js?v=3"></script>
 </body>
 </html>

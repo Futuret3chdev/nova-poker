@@ -1,45 +1,72 @@
+import {
+  connectPhantom, connectSolflare, disconnectSolana,
+  getCasinoBalance, setCasinoBalance, addCasinoBalance,
+  fetchWalletMtBalance, shortAddress
+} from './solana-wallet.js';
+
 const STORAGE_KEY = 'mt-poker-wallet';
 
 const DEFAULTS = {
-  mtBalance: 2500,
   freeChips: 10000,
   walletConnected: false,
   walletAddress: '',
+  walletType: '',
   lastDailyBonus: '',
   handsPlayed: 0,
   handsWon: 0,
-  mtWon: 0,
   screenName: 'Player1'
 };
 
 export function loadWallet() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : { ...DEFAULTS };
+    const w = raw ? { ...DEFAULTS, ...JSON.parse(raw) } : { ...DEFAULTS };
+    w.mtBalance = w.walletAddress ? getCasinoBalance(w.walletAddress) : 0;
+    return w;
   } catch {
-    return { ...DEFAULTS };
+    return { ...DEFAULTS, mtBalance: 0 };
   }
 }
 
 export function saveWallet(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  const { mtBalance, ...rest } = data;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+  if (data.walletAddress && mtBalance != null) {
+    setCasinoBalance(data.walletAddress, mtBalance);
+  }
 }
 
-export function connectWallet() {
+export async function connectWalletProvider(type) {
+  const session = type === 'solflare' ? await connectSolflare() : await connectPhantom();
   const w = loadWallet();
-  const hex = Array.from({ length: 8 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
   w.walletConnected = true;
-  w.walletAddress = `0xMT${hex}...torrent`;
-  if (w.mtBalance < 1000) w.mtBalance = 5000;
+  w.walletAddress = session.publicKey;
+  w.walletType = session.walletType;
+  w.mtBalance = getCasinoBalance(session.publicKey);
   saveWallet(w);
   return w;
 }
 
-export function disconnectWallet() {
+export async function disconnectWallet() {
+  await disconnectSolana();
   const w = loadWallet();
   w.walletConnected = false;
   w.walletAddress = '';
+  w.walletType = '';
+  w.mtBalance = 0;
   saveWallet(w);
+  return w;
+}
+
+export async function refreshMtBalance(wallet) {
+  const w = { ...wallet };
+  if (!w.walletAddress) {
+    w.mtBalance = 0;
+    return w;
+  }
+  w.mtBalance = getCasinoBalance(w.walletAddress);
+  const onChain = await fetchWalletMtBalance(w.walletAddress);
+  w.walletMtOnChain = onChain;
   return w;
 }
 
@@ -49,20 +76,26 @@ export function claimDailyBonus() {
   if (w.lastDailyBonus === today) return { ok: false, wallet: w };
   w.lastDailyBonus = today;
   w.freeChips += 5000;
-  w.mtBalance += 250;
   saveWallet(w);
-  return { ok: true, wallet: w, bonus: { chips: 5000, mt: 250 } };
+  return { ok: true, wallet: w, bonus: { chips: 5000 } };
 }
 
 export function canAffordBuyIn(wallet, mode, buyIn) {
-  if (mode.currency === 'mt') return wallet.mtBalance >= buyIn;
+  if (mode.currency === 'mt') {
+    if (!wallet.walletConnected) return false;
+    return wallet.mtBalance >= buyIn;
+  }
   return wallet.freeChips >= buyIn;
 }
 
 export function deductBuyIn(wallet, mode, buyIn) {
   const w = { ...wallet };
-  if (mode.currency === 'mt') w.mtBalance -= buyIn;
-  else w.freeChips -= buyIn;
+  if (mode.currency === 'mt') {
+    w.mtBalance -= buyIn;
+    setCasinoBalance(w.walletAddress, w.mtBalance);
+  } else {
+    w.freeChips -= buyIn;
+  }
   saveWallet(w);
   return w;
 }
@@ -70,21 +103,29 @@ export function deductBuyIn(wallet, mode, buyIn) {
 export function creditWinnings(wallet, mode, amount, won) {
   const w = { ...wallet };
   w.handsPlayed += 1;
-  if (won) {
-    w.handsWon += 1;
-    if (mode.currency === 'mt') {
-      w.mtBalance += amount;
-      w.mtWon += amount;
-    } else {
-      w.freeChips += amount;
-    }
+  if (won) w.handsWon += 1;
+  saveWallet(w);
+  return w;
+}
+
+export function cashOutMt(wallet, chips) {
+  const w = { ...wallet };
+  if (w.walletAddress && chips > 0) {
+    w.mtBalance = getCasinoBalance(w.walletAddress) + chips;
+    setCasinoBalance(w.walletAddress, w.mtBalance);
   }
   saveWallet(w);
   return w;
 }
 
-export function shortAddress(addr) {
-  if (!addr) return 'Not connected';
-  if (addr.length <= 14) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+export function creditDeposit(wallet, amount) {
+  const w = { ...wallet };
+  if (w.walletAddress) {
+    addCasinoBalance(w.walletAddress, amount);
+    w.mtBalance = getCasinoBalance(w.walletAddress);
+  }
+  saveWallet(w);
+  return w;
 }
+
+export { shortAddress };

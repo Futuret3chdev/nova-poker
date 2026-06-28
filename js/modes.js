@@ -32,7 +32,7 @@ export const TABLE_MODES = {
   'mt-ai': {
     id: 'mt-ai',
     title: '$MT vs AI',
-    subtitle: 'Win MemeTorrent tokens at the table',
+    subtitle: 'Load $MT from wallet — no free tokens',
     currency: 'mt',
     symbol: 'MT',
     vsAI: true,
@@ -47,7 +47,7 @@ export const TABLE_MODES = {
   'mt-multi': {
     id: 'mt-multi',
     title: '$MT Multiplayer',
-    subtitle: 'Real stakes — winner takes $MT',
+    subtitle: 'Connect wallet & load $MT to play',
     currency: 'mt',
     symbol: 'MT',
     vsAI: false,

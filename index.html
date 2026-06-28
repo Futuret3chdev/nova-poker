@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=14">
+  <link rel="stylesheet" href="/css/style.css?v=15">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -62,7 +62,7 @@
             <div class="header-profile-avatar" id="menu-player-avatar"></div>
             <span class="header-profile-name" id="menu-player-name">Player1</span>
           </div>
-          <button type="button" class="btn-settings" id="btn-settings">Settings</button>
+          <button type="button" class="btn-settings" id="btn-settings" title="Settings" aria-label="Settings">⚙</button>
           <button type="button" class="btn-wallet" id="btn-connect">Connect Wallet</button>
         </div>
       </header>
@@ -362,7 +362,7 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=14"></script>
+  <script type="module" src="/js/main.js?v=15"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

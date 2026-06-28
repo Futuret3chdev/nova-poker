@@ -17,8 +17,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=25">
-  <link rel="stylesheet" href="/css/roulette.css?v=25">
+  <link rel="stylesheet" href="/css/style.css?v=26">
+  <link rel="stylesheet" href="/css/roulette.css?v=26">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -350,37 +350,42 @@
       </footer>
     </section>
 
-    <!-- ROULETTE -->
+    <!-- ROULETTE — classic casino layout -->
     <section id="roulette-screen" class="screen">
-      <header class="game-header">
-        <button type="button" class="btn-ghost" id="btn-roulette-back">← Lobby</button>
-        <div class="header-center">
-          <span class="eco-pill">NOVA MIRAGE</span>
-          <span>Roulette</span>
-        </div>
-        <span class="roulette-balance" id="roulette-chips">₵10,000</span>
-      </header>
+      <div class="rl-cabinet">
+        <header class="rl-top">
+          <button type="button" class="rl-back" id="btn-roulette-back" aria-label="Back to lobby">←</button>
+          <h1 class="rl-title">European Roulette</h1>
+          <div class="rl-bank"><span class="rl-bank-label">BANK</span> ₵<span id="roulette-chips">10,000</span></div>
+        </header>
 
-      <div class="roulette-stage">
-        <div class="roulette-pointer" aria-hidden="true"></div>
-        <div class="roulette-wheel-wrap">
-          <div class="roulette-wheel" id="roulette-wheel"></div>
+        <div class="rl-history-bar">
+          <span class="rl-history-label">LAST</span>
+          <div class="rl-history-track" id="roulette-history"></div>
         </div>
-        <div class="roulette-result" id="roulette-result"></div>
-        <p class="roulette-message" id="roulette-message">Place your bets</p>
-      </div>
 
-      <div class="roulette-panel">
-        <div class="chip-select" id="chip-select"></div>
-        <div class="roulette-quick-bets" id="roulette-quick-bets"></div>
-        <div class="roulette-table-wrap">
-          <div class="roulette-table" id="roulette-table"></div>
+        <div class="rl-main">
+          <div class="rl-wheel-zone">
+            <div class="rl-wheel-frame" id="roulette-wheel-wrap"></div>
+            <div class="rl-result-line">
+              <div class="rl-result" id="roulette-result"></div>
+              <p class="rl-msg" id="roulette-message">Place your bets</p>
+            </div>
+          </div>
+
+          <div class="rl-mat-scroll">
+            <div class="rl-mat" id="roulette-mat"></div>
+          </div>
         </div>
-        <p class="roulette-bets-summary" id="roulette-bets-summary">Tap the table to place bets</p>
-        <div class="roulette-actions">
-          <button type="button" class="btn-secondary" id="btn-roulette-clear">Clear Bets</button>
-          <button type="button" class="btn-play btn-roulette-spin" id="btn-roulette-spin">Spin Wheel</button>
-        </div>
+
+        <footer class="rl-footer">
+          <div class="rl-chip-tray" id="chip-select"></div>
+          <p class="rl-bet-total" id="roulette-bets-summary"></p>
+          <div class="rl-footer-actions">
+            <button type="button" class="rl-btn-clear" id="btn-roulette-clear">CLEAR</button>
+            <button type="button" class="rl-spin-btn" id="btn-roulette-spin">SPIN</button>
+          </div>
+        </footer>
       </div>
     </section>
 
@@ -431,7 +436,7 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=25"></script>
+  <script type="module" src="/js/main.js?v=26"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

@@ -1,26 +1,26 @@
-import { PokerGame } from './game.js?v=25';
-import { PokerUI } from './ui.js?v=25';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=25';
-import { artForGame } from './game-art.js?v=25';
-import { RouletteUI } from './roulette-ui.js?v=25';
-import { casinoSound, unlockAudio } from './sounds.js?v=25';
+import { PokerGame } from './game.js?v=26';
+import { PokerUI } from './ui.js?v=26';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=26';
+import { artForGame } from './game-art.js?v=26';
+import { RouletteUI } from './roulette-ui.js?v=26';
+import { casinoSound, unlockAudio } from './sounds.js?v=26';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress, adjustFreeChips
-} from './wallet.js?v=25';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=25';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=25';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=25';
+} from './wallet.js?v=26';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=26';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=26';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=26';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=25';
-import { renderAvatarHTML } from './avatar.js?v=25';
+} from './profile.js?v=26';
+import { renderAvatarHTML } from './avatar.js?v=26';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=25';
+} from './auth.js?v=26';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -307,6 +307,7 @@ function openRoulette() {
     }
   });
   showScreen('roulette');
+  requestAnimationFrame(() => rouletteUI?.wheelRenderer?.resize());
 }
 
 function stopRoulette() {

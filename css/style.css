@@ -196,19 +196,31 @@ html, body {
 .header-pot strong { color: var(--gold); }
 
 /* ── Table ── */
+#game-screen {
+  position: relative;
+  overflow: hidden;
+}
+
 .table-wrap {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 12px;
+  padding: 8px 12px 4px;
   min-height: 0;
+  max-height: calc(100dvh - 280px);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .poker-table {
-  width: min(100%, 680px);
+  width: min(100%, 620px);
   aspect-ratio: 1.55 / 1;
+  max-height: 100%;
   position: relative;
+  pointer-events: none;
 }
 
 .table-felt {
@@ -289,7 +301,7 @@ html, body {
 }
 
 /* ── Seats ── */
-.seats { position: absolute; inset: 0; }
+.seats { position: absolute; inset: 0; pointer-events: none; }
 
 .seat {
   position: absolute;
@@ -300,6 +312,26 @@ html, body {
   gap: 4px;
   z-index: 3;
   transition: opacity 0.2s;
+  pointer-events: auto;
+}
+
+.turn-tag {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.75);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--gold-dim);
+  white-space: nowrap;
+  animation: turn-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes turn-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(255, 193, 7, 0.3); }
+  50% { opacity: 0.85; box-shadow: 0 0 16px rgba(255, 193, 7, 0.55); }
 }
 
 .seat.folded { opacity: 0.45; }
@@ -386,12 +418,43 @@ html, body {
   text-align: center;
 }
 
+/* ── Controls dock (always on top, clickable) ── */
+.game-controls {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+  background: linear-gradient(180deg, rgba(13, 17, 23, 0.97) 0%, var(--bg) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.turn-indicator {
+  text-align: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  padding: 10px 16px 4px;
+  color: var(--muted);
+}
+.turn-indicator.your-turn {
+  color: var(--gold);
+  font-size: 1.05rem;
+  text-shadow: 0 0 20px rgba(255, 193, 7, 0.35);
+}
+.turn-indicator.their-turn {
+  color: #90caf9;
+}
+.turn-indicator.showdown {
+  color: var(--green-btn);
+}
+
 /* ── Messages & actions ── */
 .game-message {
   text-align: center;
   font-size: 0.82rem;
   color: var(--muted);
-  padding: 6px 16px;
+  padding: 4px 16px 6px;
   flex-shrink: 0;
 }
 
@@ -413,9 +476,11 @@ html, body {
   gap: 8px;
   justify-content: center;
   align-items: center;
-  padding: 12px 16px 20px;
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5), transparent);
+  padding: 8px 16px 12px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 101;
+  pointer-events: auto;
 }
 .action-panel.visible { display: flex; }
 
@@ -461,8 +526,10 @@ html, body {
 
 .btn-next {
   display: none;
-  margin: 0 auto 20px;
+  margin: 0 auto 12px;
   padding: 12px 28px;
+  position: relative;
+  z-index: 101;
   border: none;
   border-radius: 8px;
   background: var(--green-btn);
@@ -486,12 +553,16 @@ html, body {
   .seat-name { font-size: 0.65rem; }
   .seat-chips { font-size: 0.6rem; }
 
-  .action-panel { gap: 6px; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .table-wrap { max-height: calc(100dvh - 300px); }
+
+  .action-panel { gap: 6px; }
   .act { padding: 10px 12px; font-size: 0.82rem; min-width: 68px; }
   .raise-group { width: 100%; justify-content: center; }
   #raise-slider { flex: 1; max-width: 140px; }
 
-  .poker-table { width: 100%; }
+  .poker-table { width: 100%; max-width: 100%; }
+
+  .turn-indicator.your-turn { font-size: 0.92rem; }
 
   .mode-grid { grid-template-columns: 1fr 1fr; }
   .wallet-bar { flex-wrap: wrap; gap: 8px; }

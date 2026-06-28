@@ -1,14 +1,14 @@
-import { PokerGame } from './game.js?v=4';
-import { PokerUI } from './ui.js?v=4';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=4';
+import { PokerGame } from './game.js?v=5';
+import { PokerUI } from './ui.js?v=5';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=5';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=4';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=4';
-import { detectWallets, sendMTToTreasury, walletInstallUrl } from './solana-wallet.js?v=4';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=4';
+} from './wallet.js?v=5';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=5';
+import { detectWallets, sendMTToTreasury, walletInstallUrl } from './solana-wallet.js?v=5';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=5';
 
 let game = null;
 let ui = null;

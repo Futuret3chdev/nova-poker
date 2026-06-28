@@ -2,12 +2,12 @@ import { cardHTML } from './deck.js';
 import { evaluateHand } from './hand-evaluator.js';
 
 const SEAT_POSITIONS = [
-  { x: 50, y: 88 },
-  { x: 12, y: 62 },
-  { x: 8, y: 32 },
-  { x: 50, y: 8 },
-  { x: 92, y: 32 },
-  { x: 88, y: 62 }
+  { x: 50, y: 72 },
+  { x: 12, y: 58 },
+  { x: 8, y: 30 },
+  { x: 50, y: 10 },
+  { x: 92, y: 30 },
+  { x: 88, y: 58 }
 ];
 
 export class PokerUI {
@@ -37,7 +37,8 @@ export class PokerUI {
       handStrength: document.getElementById('hand-strength'),
       btnNext: document.getElementById('btn-next-hand'),
       modeBadge: document.getElementById('mode-badge'),
-      walletHud: document.getElementById('wallet-hud')
+      walletHud: document.getElementById('wallet-hud'),
+      turnIndicator: document.getElementById('turn-indicator')
     };
   }
 
@@ -62,6 +63,7 @@ export class PokerUI {
       this.els.modeBadge.className = `mode-badge badge-${state.mode?.currency || 'free'}`;
     }
     if (state.lastAction) this.els.message.textContent = state.lastAction;
+    this.renderTurnIndicator(state);
 
     const human = state.players[0];
     if (human?.hole?.length && state.community.length) {
@@ -121,8 +123,11 @@ export class PokerUI {
       const status = p.allIn ? '<span class="status allin">ALL-IN</span>' : p.folded ? '<span class="status fold">FOLD</span>' : '';
       const handName = state.phase === 'showdown' && !p.folded && p.handName
         ? `<div class="hand-name">${p.handName}</div>` : '';
+      const turnTag = isActive
+        ? `<div class="turn-tag">${p.isHuman ? 'YOUR TURN' : 'ACTING'}</div>` : '';
 
       seat.innerHTML = `
+        ${turnTag}
         <div class="seat-cards">${cards || '<div class="card-slot"></div>'}</div>
         <div class="seat-info">
           <div class="avatar ${p.isHuman ? 'avatar-you' : ''}">${p.name.charAt(0)}</div>
@@ -147,6 +152,35 @@ export class PokerUI {
       html += state.community[i] ? cardHTML(state.community[i]) : '<div class="card card-empty"></div>';
     }
     this.els.community.innerHTML = html;
+  }
+
+  renderTurnIndicator(state) {
+    const el = this.els.turnIndicator;
+    if (!el) return;
+
+    if (state.phase === 'showdown') {
+      el.textContent = 'Showdown — review hands';
+      el.className = 'turn-indicator showdown';
+      return;
+    }
+
+    const actor = state.players[state.actionIndex];
+    if (!actor) {
+      el.textContent = 'Dealing…';
+      el.className = 'turn-indicator';
+      return;
+    }
+
+    if (actor.isHuman) {
+      el.textContent = '▶ YOUR TURN — choose an action';
+      el.className = 'turn-indicator your-turn';
+    } else if (actor.folded) {
+      el.textContent = 'Hand continuing…';
+      el.className = 'turn-indicator';
+    } else {
+      el.textContent = `▶ ${actor.name}'s turn`;
+      el.className = 'turn-indicator their-turn';
+    }
   }
 
   renderActions(state) {

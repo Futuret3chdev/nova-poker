@@ -211,11 +211,22 @@ html, body {
   line-height: 1.5;
 }
 
-.lobby-footer {
+#title-screen .lobby-content {
+  padding-bottom: 88px;
+}
+
+#title-screen .lobby-footer {
   position: absolute;
-  bottom: 16px;
-  font-size: 0.75rem;
-  color: var(--muted);
+  left: 0;
+  right: 0;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
 }
 
 /* ── Game header ── */
@@ -758,7 +769,7 @@ html, body {
 }
 
 /* ── Nova Mirage cover ── */
-.casino-cover { margin-bottom: 1.25rem; }
+.casino-cover { margin-bottom: 1.75rem; }
 
 .casino-marquee {
   display: flex;
@@ -776,9 +787,9 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  margin: 0 0 10px;
-  line-height: 0.95;
+  gap: 8px;
+  margin: 0 0 14px;
+  line-height: 1;
 }
 
 .name-nova,
@@ -819,6 +830,20 @@ html, body {
   gap: 8px;
 }
 
+.footer-brand {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240, 243, 246, 0.7);
+}
+
+.footer-credits {
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
 .cover-pill {
   font-family: 'Oswald', sans-serif;
   font-size: 0.65rem;
@@ -843,6 +868,7 @@ html, body {
 .eco-credits {
   font-size: 0.82rem;
   color: var(--muted);
+  margin-top: 0.5rem;
   margin-bottom: 1.5rem;
   line-height: 1.6;
 }

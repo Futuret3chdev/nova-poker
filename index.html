@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=8">
+  <link rel="stylesheet" href="/css/style.css?v=9">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -227,7 +227,7 @@
     <div class="modal-backdrop" id="wallet-modal-backdrop"></div>
     <div class="modal-card">
       <h3>Connect Wallet</h3>
-      <p class="modal-desc">Opens <strong>Phantom</strong> or <strong>Solflare</strong> app. In Solflare, tap <strong>Connect</strong> when prompted inside their browser.</p>
+      <p class="modal-desc">Opens <strong>Phantom</strong> or <strong>Solflare</strong> app. In Solflare, approve the <strong>Connect</strong> prompt when it appears.</p>
       <button type="button" class="wallet-option phantom" id="btn-phantom">
         <span class="wallet-icon">👻</span>
         <span>Phantom</span>
@@ -244,7 +244,7 @@
     </div>
   </div>
 
-  <script type="module" src="/js/main.js?v=8"></script>
+  <script type="module" src="/js/main.js?v=9"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

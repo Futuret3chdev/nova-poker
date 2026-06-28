@@ -1,14 +1,14 @@
-import { PokerGame } from './game.js?v=8';
-import { PokerUI } from './ui.js?v=8';
-import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=8';
+import { PokerGame } from './game.js?v=9';
+import { PokerUI } from './ui.js?v=9';
+import { TABLE_MODES, MENU_SECTIONS, MULTIPLAYER_ROOMS, CASINO_GAMES } from './modes.js?v=9';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress
-} from './wallet.js?v=8';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=8';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=8';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=8';
+} from './wallet.js?v=9';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=9';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=9';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=9';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -364,8 +364,8 @@ async function handleConnect(type) {
 async function resumeWalletIfNeeded() {
   const pending = sessionStorage.getItem('mt-pending-wallet');
   if (!pending || !detectWallets()[pending]) return;
-  // Solflare injects slowly after v1/browse opens
-  const delays = pending === 'solflare' ? [0, 800, 2000] : [0];
+  // Solflare SDK iframe needs time after v1/browse opens
+  const delays = pending === 'solflare' ? [0, 1500, 3500, 6000] : [0];
   for (const ms of delays) {
     if (ms) await new Promise((r) => setTimeout(r, ms));
     if (!detectWallets()[pending]) continue;

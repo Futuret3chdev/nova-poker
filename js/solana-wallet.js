@@ -2,6 +2,19 @@ import { MEMETORRENT } from './config.js';
 
 let activeProvider = null;
 let activeType = '';
+let solflareSdk = null;
+
+function isSolflareBrowser() {
+  return !!(window.solflare?.isSolflare || window.SolflareApp);
+}
+
+async function getSolflareSdk() {
+  if (!solflareSdk) {
+    const { default: Solflare } = await import('https://esm.sh/@solflare-wallet/sdk@1.4.2');
+    solflareSdk = new Solflare({ network: 'mainnet-beta' });
+  }
+  return solflareSdk;
+}
 
 // Solflare transaction signing needs Buffer (same fix as Lucky Reels)
 let bufferReady = null;
@@ -26,10 +39,9 @@ export function isStandaloneApp() {
 }
 
 export function detectWallets() {
-  const sf = window.solflare;
   return {
     phantom: !!(window.phantom?.solana?.isPhantom),
-    solflare: !!(sf?.isSolflare || sf?.connect || sf?.publicKey),
+    solflare: isSolflareBrowser() || sessionStorage.getItem('mt-pending-wallet') === 'solflare',
     backpack: !!window.backpack
   };
 }
@@ -71,11 +83,7 @@ function getProviderForType(type) {
     const p = window.phantom?.solana;
     return p?.isPhantom ? p : null;
   }
-  if (type === 'solflare') {
-    const sf = window.solflare;
-    if (!sf) return null;
-    return sf;
-  }
+  if (type === 'solflare') return isSolflareBrowser() ? window.solflare : null;
   if (type === 'backpack') return window.backpack || null;
   return null;
 }
@@ -92,25 +100,31 @@ async function extractPublicKey(provider, resp, type) {
   return null;
 }
 
-async function invokeConnect(provider, type) {
+async function connectSolflareSdk() {
   await ensureBuffer();
-
-  if (type === 'solflare') {
-    // Solflare mobile — only call connect(); avoid extra options Phantom uses
-    if (typeof provider.connect !== 'function') {
-      throw new Error('Solflare connect not available — open site inside Solflare app browser');
-    }
+  const sdk = await getSolflareSdk();
+  if (!sdk.connected) {
     try {
-      return await provider.connect();
+      await sdk.connect();
     } catch (err) {
       const msg = err?.message || String(err);
       if (msg.toLowerCase().includes('user rejected') || err?.code === 4001) throw err;
-      // Retry once after brief pause (Solflare mobile is slow to inject)
-      await new Promise((r) => setTimeout(r, 600));
-      return await provider.connect();
+      await new Promise((r) => setTimeout(r, 800));
+      await sdk.connect();
     }
   }
+  const publicKey = sdk.publicKey?.toString();
+  if (!publicKey) {
+    throw new Error('Solflare: approve the connection prompt inside the wallet');
+  }
+  activeProvider = sdk;
+  activeType = 'solflare';
+  sessionStorage.removeItem('mt-pending-wallet');
+  return { provider: sdk, publicKey, walletType: 'solflare' };
+}
 
+async function invokeConnect(provider, type) {
+  await ensureBuffer();
   try {
     return await provider.connect();
   } catch (_) {
@@ -131,9 +145,18 @@ function bindProviderEvents(provider, type) {
 }
 
 export async function connectWalletType(type) {
-  let provider = getProviderForType(type);
   const mobile = isMobileDevice();
   const standalone = isStandaloneApp();
+
+  if (type === 'solflare') {
+    if ((mobile || standalone) && !isSolflareBrowser()) {
+      openWalletDeepLink(type);
+      throw new Error('Opening Solflare app…');
+    }
+    return connectSolflareSdk();
+  }
+
+  let provider = getProviderForType(type);
 
   if (!provider) {
     if (mobile || standalone) {
@@ -166,6 +189,7 @@ export async function disconnectSolana() {
   } catch (_) { /* ok */ }
   activeProvider = null;
   activeType = '';
+  solflareSdk = null;
   sessionStorage.removeItem('mt-pending-wallet');
 }
 
@@ -204,19 +228,15 @@ export async function walletSignAndSend(transaction) {
   const conn = new Connection(MEMETORRENT.rpcUrl, 'confirmed');
 
   if (typeof activeProvider.signAndSendTransaction === 'function') {
-    try {
-      const result = await activeProvider.signAndSendTransaction(transaction);
-      if (typeof result === 'string') return result;
-      return result?.signature || result;
-    } catch (err) {
-      const msg = err?.message || '';
-      if (activeType !== 'solflare' || !msg.toLowerCase().includes('method')) throw err;
-    }
+    const result = await activeProvider.signAndSendTransaction(transaction);
+    if (typeof result === 'string') return result;
+    return result?.signature || result;
   }
 
   if (typeof activeProvider.signTransaction === 'function') {
     const signed = await activeProvider.signTransaction(transaction);
-    const sig = await conn.sendRawTransaction(signed.serialize(), { skipPreflight: false });
+    const raw = typeof signed.serialize === 'function' ? signed.serialize() : signed;
+    const sig = await conn.sendRawTransaction(raw, { skipPreflight: false });
     const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash();
     await conn.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight });
     return sig;

@@ -17,14 +17,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=38">
-  <link rel="stylesheet" href="/css/roulette.css?v=38">
-  <link rel="stylesheet" href="/css/game-scene.css?v=38">
-  <link rel="stylesheet" href="/css/celebration.css?v=38">
-  <link rel="stylesheet" href="/css/gate.css?v=38">
-  <link rel="stylesheet" href="/css/game-fx.css?v=38">
-  <link rel="stylesheet" href="/css/blackjack.css?v=38">
-  <link rel="stylesheet" href="/css/starfall.css?v=38">
+  <link rel="stylesheet" href="/css/style.css?v=39">
+  <link rel="stylesheet" href="/css/roulette.css?v=39">
+  <link rel="stylesheet" href="/css/game-scene.css?v=39">
+  <link rel="stylesheet" href="/css/celebration.css?v=39">
+  <link rel="stylesheet" href="/css/gate.css?v=39">
+  <link rel="stylesheet" href="/css/game-fx.css?v=39">
+  <link rel="stylesheet" href="/css/blackjack.css?v=39">
+  <link rel="stylesheet" href="/css/starfall.css?v=39">
 </head>
 <body>
   <div id="age-gate-frame" class="age-gate-frame" aria-hidden="true">
@@ -517,6 +517,9 @@
             </div>
             <div class="sf-window">
               <div class="sf-paylines" id="sf-paylines" aria-hidden="true">
+                <span class="sf-row-guide" data-row="0"></span>
+                <span class="sf-row-guide" data-row="1"></span>
+                <span class="sf-row-guide" data-row="2"></span>
                 <span class="sf-pline" data-line="0"></span>
                 <span class="sf-pline" data-line="1"></span>
                 <span class="sf-pline" data-line="2"></span>
@@ -657,7 +660,7 @@
 
   <div id="celebration-layer" class="celebration-layer" aria-hidden="true" hidden></div>
 
-  <script type="module" src="/js/main.js?v=38"></script>
+  <script type="module" src="/js/main.js?v=39"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

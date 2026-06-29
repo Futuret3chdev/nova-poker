@@ -3,9 +3,9 @@
 import {
   SYMBOLS, BET_STEPS, LINES, PAYTABLE, spinGridTease, evaluate
 } from './starfall.js';
-import { casinoSound, unlockAudio } from './sounds.js?v=38';
-import { celebrateWin, winTier } from './celebration.js?v=38';
-import { spawnAmbient, burstAt, chaseLights } from './game-fx.js?v=38';
+import { casinoSound, unlockAudio } from './sounds.js?v=39';
+import { celebrateWin, winTier } from './celebration.js?v=39';
+import { spawnAmbient, burstAt, chaseLights } from './game-fx.js?v=39';
 
 const ROW_H = 88;
 
@@ -144,7 +144,7 @@ export class StarfallUI {
     setTimeout(() => {
       pop.classList.remove('on');
       setTimeout(() => { pop.hidden = true; }, 500);
-    }, 2400);
+    }, 1600);
   }
 
   async spin() {
@@ -198,35 +198,39 @@ export class StarfallUI {
 
   async animateReels(grid) {
     const reels = [...this.els.reels.querySelectorAll('.sf-reel')];
+    const PAD = 5;
 
-    for (let col = 0; col < 5; col++) {
-      const strip = reels[col].querySelector('.sf-strip');
+    const promises = reels.map((reel, col) => new Promise((resolve) => {
+      const strip = reel.querySelector('.sf-strip');
       strip.innerHTML = '';
       const padding = [];
-      for (let i = 0; i < 10; i++) padding.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+      for (let i = 0; i < PAD; i++) padding.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
       const finalRows = [grid[0][col], grid[1][col], grid[2][col]];
-      [...padding, ...finalRows, ...padding.slice(0, 2)].forEach((sym, i) => {
+      [...padding, ...finalRows, ...padding.slice(0, 1)].forEach((sym, i) => {
         strip.appendChild(this.symbolCell(sym, i));
       });
       const offset = padding.length * ROW_H;
+      const dur = 0.42 + col * 0.09 + Math.random() * 0.06;
+      const startDelay = col * 55;
 
-      await new Promise((resolve) => {
+      setTimeout(() => {
         strip.classList.add('sf-spinning');
         strip.style.transition = 'none';
         strip.style.transform = 'translateY(0)';
         void strip.offsetWidth;
-        const dur = 1.15 + col * 0.28 + Math.random() * 0.12;
-        strip.style.transition = `transform ${dur}s cubic-bezier(0.1, 0.85, 0.15, 1)`;
+        strip.style.transition = `transform ${dur}s cubic-bezier(0.2, 0.9, 0.25, 1)`;
         strip.style.transform = `translateY(-${offset}px)`;
         setTimeout(() => {
           casinoSound.reelStop(col);
           strip.classList.remove('sf-spinning');
-          reels[col].classList.add('sf-reel-stop');
-          setTimeout(() => reels[col].classList.remove('sf-reel-stop'), 400);
+          reel.classList.add('sf-reel-stop');
+          setTimeout(() => reel.classList.remove('sf-reel-stop'), 220);
           resolve();
-        }, dur * 1000 + 50);
-      });
-    }
+        }, dur * 1000 + 20);
+      }, startDelay);
+    }));
+
+    await Promise.all(promises);
   }
 
   showWinFX(results, tier) {
@@ -238,7 +242,7 @@ export class StarfallUI {
       win.cells.forEach(({ row, col }) => {
         const reel = this.els.reels?.querySelector(`[data-col="${col}"]`);
         const cells = reel?.querySelectorAll('.sf-cell');
-        const idx = 10 + row;
+        const idx = 5 + row;
         cells?.[idx]?.classList.add('sf-cell-win');
       });
       lineRows.add(LINES[win.line][1]);

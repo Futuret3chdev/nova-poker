@@ -17,13 +17,30 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=29">
-  <link rel="stylesheet" href="/css/roulette.css?v=29">
-  <link rel="stylesheet" href="/css/game-scene.css?v=29">
-  <link rel="stylesheet" href="/css/celebration.css?v=29">
-  <link rel="stylesheet" href="/css/gate.css?v=29">
+  <link rel="stylesheet" href="/css/style.css?v=30">
+  <link rel="stylesheet" href="/css/roulette.css?v=30">
+  <link rel="stylesheet" href="/css/game-scene.css?v=30">
+  <link rel="stylesheet" href="/css/celebration.css?v=30">
+  <link rel="stylesheet" href="/css/gate.css?v=30">
 </head>
 <body>
+  <div id="age-gate-frame" class="age-gate-frame" aria-hidden="true">
+    <div class="age-gate-inner">
+      <span class="age-badge">18+</span>
+      <div class="age-gate-copy">
+        <strong>Age verification required</strong>
+        <span>Nova Mirage is adults only — enter your birth year to continue</span>
+      </div>
+      <label class="age-field">
+        <span>Birth year</span>
+        <input type="number" id="age-birth-year" inputmode="numeric" min="1900" max="2010" placeholder="1995" autocomplete="bday-year">
+      </label>
+      <p class="age-gate-error" id="age-gate-error" hidden></p>
+      <button type="button" class="btn-play" id="btn-age-confirm">I am 18+</button>
+      <p class="age-legal">Play responsibly · Under 18 will be redirected to MemeTorrent</p>
+    </div>
+  </div>
+
   <div id="install-hint" class="install-hint" hidden>
     <p><strong>Tip:</strong> Tap <span class="ios-share">Share</span> → <strong>Add to Home Screen</strong>. To connect wallet, tap Phantom/Solflare — it opens the <strong>wallet app</strong> directly.</p>
     <button type="button" id="install-hint-close">Got it</button>
@@ -98,21 +115,24 @@
     <!-- MAIN MENU -->
     <section id="menu-screen" class="screen">
       <header class="menu-header menu-header-premium">
-        <button type="button" class="btn-ghost" id="btn-menu-back">←</button>
-        <div class="menu-header-center">
-          <span class="eco-pill">NOVA MIRAGE</span>
-          <h2>Casino Lobby</h2>
+        <div class="menu-toolbar">
+          <button type="button" class="menu-tb-btn btn-ghost" id="btn-menu-back" aria-label="Back">←</button>
+          <span class="eco-pill menu-tb-brand">NOVA MIRAGE</span>
+          <span class="menu-tb-spacer"></span>
+          <button type="button" class="menu-tb-btn" id="btn-view-mode" title="View mode">Classic</button>
+          <button type="button" class="menu-tb-btn btn-settings" id="btn-settings" title="Settings" aria-label="Settings">⚙</button>
         </div>
-        <div class="menu-header-actions">
+        <div class="menu-toolbar menu-toolbar-sub">
           <button type="button" class="btn-auth-header" id="btn-header-auth">Log In</button>
           <div class="header-profile" title="Your profile">
             <div class="header-profile-avatar" id="menu-player-avatar"></div>
             <span class="header-profile-name" id="menu-player-name">Player1</span>
           </div>
-          <button type="button" class="btn-settings" id="btn-settings" title="Settings" aria-label="Settings">⚙</button>
-          <button type="button" class="btn-wallet" id="btn-connect">Connect Wallet</button>
+          <button type="button" class="btn-lounge-entry" id="btn-lounge-entry">Lounge</button>
+          <button type="button" class="btn-wallet btn-wallet-compact" id="btn-connect">Wallet</button>
         </div>
       </header>
+      <div class="fpv-banner" id="fpv-banner">First-person casino view — classic tables still available below</div>
 
       <button type="button" class="wallet-toggle" id="btn-wallet-toggle" aria-expanded="false" aria-controls="wallet-panel">
         <span class="wallet-toggle-label">Balance</span>
@@ -414,6 +434,28 @@
       </footer>
     </section>
 
+    <!-- SOCIAL LOUNGE -->
+    <section id="lounge-screen" class="screen">
+      <header class="menu-header">
+        <button type="button" class="btn-ghost" id="btn-lounge-back">← Lobby</button>
+        <div class="menu-header-center">
+          <span class="eco-pill">SOCIAL</span>
+          <h2>Mirage Lounge</h2>
+        </div>
+      </header>
+      <div class="lounge-wrap">
+        <div class="lounge-hud">
+          <h3>Walk in · Video hangout · Live avatars</h3>
+          <p>Your avatar roams the lounge — video chat &amp; full 3D floor coming in updates</p>
+        </div>
+        <div class="lounge-stage" id="lounge-stage"></div>
+        <div class="lounge-actions">
+          <button type="button" class="btn-secondary" id="btn-lounge-video" disabled>Video (soon)</button>
+          <button type="button" class="btn-play" id="btn-lounge-games">Browse Games</button>
+        </div>
+      </div>
+    </section>
+
     <!-- ROULETTE -->
     <section id="roulette-screen" class="screen">
       <div class="game-scene" id="roulette-scene" aria-hidden="true">
@@ -527,23 +569,7 @@
 
   <div id="celebration-layer" class="celebration-layer" aria-hidden="true" hidden></div>
 
-  <div id="age-gate-modal" class="age-gate-modal" hidden>
-    <div class="age-gate-backdrop"></div>
-    <div class="age-gate-card">
-      <span class="age-badge">18+</span>
-      <h2>Age Verification Required</h2>
-      <p>Nova Mirage is for adults only. You must be <strong>18 years or older</strong> to enter and play. By continuing you confirm you meet the legal age requirement in your jurisdiction.</p>
-      <label class="age-field">
-        <span>Year of birth</span>
-        <input type="number" id="age-birth-year" inputmode="numeric" min="1900" max="2010" placeholder="e.g. 1995" autocomplete="bday-year">
-      </label>
-      <p class="age-gate-error" id="age-gate-error" hidden></p>
-      <button type="button" class="btn-play" id="btn-age-confirm">I am 18+ — Enter Casino</button>
-      <p class="age-legal">Gambling can be addictive. Play responsibly. Free chips are play money only.</p>
-    </div>
-  </div>
-
-  <script type="module" src="/js/main.js?v=29"></script>
+  <script type="module" src="/js/main.js?v=30"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

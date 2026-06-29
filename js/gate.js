@@ -2,6 +2,7 @@
 
 const AGE_KEY = 'nm-age-verified';
 const AGE_VALUE_KEY = 'nm-age-year';
+export const UNDERAGE_REDIRECT = 'https://memetorrent.futuret3ch.com.au';
 
 export function isAgeVerified() {
   return localStorage.getItem(AGE_KEY) === '1';
@@ -20,32 +21,46 @@ export function verifyAge(birthYear) {
   }
   const age = now - year;
   if (age < 18) {
-    return { ok: false, error: 'You must be 18 or older to enter Nova Mirage' };
+    return { ok: false, underage: true, error: 'You must be 18 or older to enter Nova Mirage' };
   }
   localStorage.setItem(AGE_KEY, '1');
   localStorage.setItem(AGE_VALUE_KEY, String(year));
   return { ok: true, age };
 }
 
+function frameEl() {
+  return document.getElementById('age-gate-frame');
+}
+
 export function openAgeGate() {
-  const modal = document.getElementById('age-gate-modal');
-  if (modal) modal.removeAttribute('hidden');
+  const el = frameEl();
+  if (el) {
+    el.classList.add('open');
+    el.setAttribute('aria-hidden', 'false');
+  }
 }
 
 export function closeAgeGate() {
-  document.getElementById('age-gate-modal')?.setAttribute('hidden', '');
+  const el = frameEl();
+  if (el) {
+    el.classList.remove('open');
+    el.setAttribute('aria-hidden', 'true');
+  }
 }
 
 export function bindAgeGate(onVerified) {
-  const modal = document.getElementById('age-gate-modal');
   const input = document.getElementById('age-birth-year');
   const btn = document.getElementById('btn-age-confirm');
   const err = document.getElementById('age-gate-error');
-  if (!modal || !btn) return;
+  if (!btn) return;
 
   btn.addEventListener('click', () => {
     const res = verifyAge(input?.value);
     if (!res.ok) {
+      if (res.underage) {
+        window.location.href = UNDERAGE_REDIRECT;
+        return;
+      }
       if (err) {
         err.textContent = res.error;
         err.hidden = false;

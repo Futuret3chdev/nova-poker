@@ -1,10 +1,11 @@
 import {
   CHIP_VALUES, TABLE_ROWS,
-  spinResult, resolveBets, betLabel, isRed
+  spinResult, resolveBets, betLabel, isRed,
+  splitPair, streetAnchor, cornerAnchor, sixLineAnchor
 } from './roulette.js';
 import { RouletteWheelCanvas } from './roulette-wheel.js';
-import { casinoSound } from './sounds.js?v=29';
-import { celebrateWin, winTier } from './celebration.js?v=29';
+import { casinoSound } from './sounds.js?v=30';
+import { celebrateWin, winTier } from './celebration.js?v=30';
 
 export class RouletteUI {
   constructor({ onBalanceChange, getBalance }) {
@@ -95,9 +96,15 @@ export class RouletteUI {
   }
 
   spot(type, value, label, extra = '') {
-    const v = value !== undefined ? ` data-bet-value="${value}"` : '';
+    const v = value !== undefined && value !== null ? ` data-bet-value="${value}"` : '';
     return `<button type="button" class="rl-spot ${extra}" data-bet-type="${type}"${v}>
       <span class="rl-spot-label">${label}</span>
+      <span class="rl-spot-chips"></span>
+    </button>`;
+  }
+
+  insideSpot(type, value, extra = '', label = '', styleAttr = '') {
+    return `<button type="button" class="rl-inside ${extra}" data-bet-type="${type}" data-bet-value="${value}" title="${label}" aria-label="${label}" ${styleAttr}>
       <span class="rl-spot-chips"></span>
     </button>`;
   }
@@ -114,17 +121,54 @@ export class RouletteUI {
   buildTable() {
     let html = '<div class="rl-mat-inner">';
     html += `<div class="rl-zero-col">${this.spot('straight', 0, '0', 'rl-zero')}</div>`;
+
+    html += '<div class="rl-numbers-block">';
+    html += '<div class="rl-grid-stack">';
     html += '<div class="rl-num-grid">';
-    for (let col = 0; col < 12; col++) {
-      html += '<div class="rl-num-col">';
-      for (let row = 2; row >= 0; row--) {
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 12; col++) {
         const n = TABLE_ROWS[row][col];
         const cls = isRed(n) ? 'rl-red' : 'rl-black';
         html += this.spot('straight', n, n, cls);
       }
-      html += '</div>';
     }
     html += '</div>';
+
+    html += '<div class="rl-overlays" aria-hidden="false">';
+    for (let row = 0; row < 2; row++) {
+      for (let col = 0; col < 12; col++) {
+        const pair = splitPair(TABLE_ROWS[row][col], TABLE_ROWS[row + 1][col]);
+        const style = `style="grid-row:${row + 1};grid-column:${col + 1}"`;
+        html += this.insideSpot('split', pair, 'rl-split-v', `Split ${pair}`, style);
+      }
+    }
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 11; col++) {
+        const pair = splitPair(TABLE_ROWS[row][col], TABLE_ROWS[row][col + 1]);
+        const style = `style="grid-row:${row + 1};grid-column:${col + 1}"`;
+        html += this.insideSpot('split', pair, 'rl-split-h', `Split ${pair}`, style);
+      }
+    }
+    for (let row = 0; row < 2; row++) {
+      for (let col = 0; col < 11; col++) {
+        const anchor = cornerAnchor(row, col);
+        const style = `style="grid-row:${row + 1} / ${row + 3};grid-column:${col + 1} / ${col + 3}"`;
+        html += this.insideSpot('corner', anchor, 'rl-corner', `Corner ${anchor}`, style);
+      }
+    }
+    for (let col = 0; col < 11; col++) {
+      const anchor = sixLineAnchor(col);
+      const style = `style="grid-row:3;grid-column:${col + 1} / ${col + 3}"`;
+      html += this.insideSpot('sixline', anchor, 'rl-sixline', `Six line ${anchor}`, style);
+    }
+    html += '</div>';
+    html += '<div class="rl-street-row">';
+    for (let col = 0; col < 12; col++) {
+      const anchor = streetAnchor(col);
+      html += this.spot('street', anchor, `St`, 'rl-street-btn');
+    }
+    html += '</div></div>';
+
     html += '<div class="rl-col-bets">';
     [3, 2, 1].forEach((c) => {
       html += this.spot('column', c, '2:1', 'rl-col-btn');
@@ -150,10 +194,10 @@ export class RouletteUI {
   }
 
   findSpot(type, value) {
-    const sel = type === 'straight' || type === 'dozen' || type === 'column'
-      ? `[data-bet-type="${type}"][data-bet-value="${value}"]`
-      : `[data-bet-type="${type}"]`;
-    return this.els.mat?.querySelector(sel);
+    if (value !== undefined && value !== null && value !== '') {
+      return this.els.mat?.querySelector(`[data-bet-type="${type}"][data-bet-value="${value}"]`);
+    }
+    return this.els.mat?.querySelector(`[data-bet-type="${type}"]:not([data-bet-value])`);
   }
 
   renderChipMarkers() {
@@ -163,7 +207,7 @@ export class RouletteUI {
       totals[key] = (totals[key] || 0) + b.amount;
     }
 
-    this.els.mat?.querySelectorAll('.rl-spot').forEach((el) => {
+    this.els.mat?.querySelectorAll('.rl-spot, .rl-inside').forEach((el) => {
       el.classList.remove('has-chips');
       const c = el.querySelector('.rl-spot-chips');
       if (c) c.innerHTML = '';
@@ -220,8 +264,12 @@ export class RouletteUI {
       const btn = e.target.closest('[data-bet-type]');
       if (!btn) return;
       const type = btn.dataset.betType;
-      const value = ['straight', 'dozen', 'column'].includes(type)
-        ? Number(btn.dataset.betValue) : undefined;
+      const raw = btn.dataset.betValue;
+      let value;
+      if (type === 'split') value = raw;
+      else if (['straight', 'dozen', 'column', 'street', 'corner', 'sixline'].includes(type)) {
+        value = raw !== undefined ? Number(raw) : undefined;
+      } else value = undefined;
       place(type, value);
     });
 

@@ -1,29 +1,31 @@
-import { PokerGame } from './game.js?v=29';
-import { PokerUI } from './ui.js?v=29';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=29';
-import { artForGame } from './game-art.js?v=29';
-import { applyGameScene } from './game-scene.js?v=29';
-import { RouletteUI } from './roulette-ui.js?v=29';
-import { casinoSound, unlockAudio } from './sounds.js?v=29';
-import { celebrateWin, winTier } from './celebration.js?v=29';
-import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=29';
+import { PokerGame } from './game.js?v=30';
+import { PokerUI } from './ui.js?v=30';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=30';
+import { artForGame } from './game-art.js?v=30';
+import { applyGameScene } from './game-scene.js?v=30';
+import { RouletteUI } from './roulette-ui.js?v=30';
+import { casinoSound, unlockAudio } from './sounds.js?v=30';
+import { celebrateWin, winTier } from './celebration.js?v=30';
+import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=30';
+import { bootViewMode, toggleViewMode, updateViewModeButton } from './fpv.js?v=30';
+import { mountLoungePreview } from './lounge.js?v=30';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress, adjustFreeChips
-} from './wallet.js?v=29';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=29';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=29';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=29';
+} from './wallet.js?v=30';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=30';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=30';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=30';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=29';
-import { renderAvatarHTML } from './avatar.js?v=29';
+} from './profile.js?v=30';
+import { renderAvatarHTML } from './avatar.js?v=30';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=29';
+} from './auth.js?v=30';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -52,6 +54,7 @@ function setupInstallHint() {
 let game = null;
 let ui = null;
 let rouletteUI = null;
+let loungeScene = null;
 let pokerWasHumanTurn = false;
 let wallet = loadWallet();
 let profile = loadProfile();
@@ -302,6 +305,18 @@ function openLuckyReels() {
   showScreen('reels');
 }
 
+function openLounge() {
+  if (!requireCasinoAccess()) return;
+  stopLounge();
+  loungeScene = mountLoungePreview(document.getElementById('lounge-stage'), profile);
+  showScreen('lounge');
+}
+
+function stopLounge() {
+  loungeScene?.destroy();
+  loungeScene = null;
+}
+
 function openRoulette() {
   if (!requireCasinoAccess()) return;
   applyGameScene('roulette-scene', 'roulette');
@@ -488,6 +503,7 @@ function updateMenuPlayerBar() {
   }
   if (nameEl) nameEl.textContent = name;
   updateAuthHeader();
+  updateViewModeButton(document.getElementById('btn-view-mode'));
 }
 
 function updateAuthHeader() {
@@ -888,6 +904,22 @@ document.getElementById('btn-enter')?.addEventListener('click', () => enterLobby
 
 document.getElementById('btn-auth-back')?.addEventListener('click', () => showScreen('title'));
 
+document.getElementById('btn-view-mode')?.addEventListener('click', () => {
+  const mode = toggleViewMode();
+  updateViewModeButton(document.getElementById('btn-view-mode'));
+  toast(mode === 'fpv' ? 'First-person view — immersive floor' : 'Classic lobby view');
+});
+
+document.getElementById('btn-lounge-entry')?.addEventListener('click', () => openLounge());
+document.getElementById('btn-lounge-back')?.addEventListener('click', () => {
+  stopLounge();
+  showScreen('menu');
+});
+document.getElementById('btn-lounge-games')?.addEventListener('click', () => {
+  stopLounge();
+  showScreen('menu');
+});
+
 document.getElementById('btn-header-auth')?.addEventListener('click', () => {
   if (isSignedIn(profile)) openSettingsScreen('account');
   else {
@@ -1057,6 +1089,8 @@ bindAgeGate(() => enterLobby());
 bindAuthScreen();
 buildAuthProviders();
 bindLobbyCategories();
+bootViewMode();
+updateViewModeButton(document.getElementById('btn-view-mode'));
 setupInstallHint();
 if (!isAgeVerified()) openAgeGate();
 bootAuthProviders(

@@ -83,9 +83,90 @@ function payoutForBet(bet, result) {
       const col = ((result - 1) % 3) + 1;
       return col === c ? amount * 3 : 0;
     }
+    case 'split': {
+      const nums = parseSplitValue(value);
+      return nums.includes(result) ? amount * 18 : 0;
+    }
+    case 'street': {
+      const nums = numbersForStreet(value);
+      return nums.includes(result) ? amount * 12 : 0;
+    }
+    case 'corner': {
+      const nums = numbersForCorner(value);
+      return nums.includes(result) ? amount * 9 : 0;
+    }
+    case 'sixline': {
+      const nums = numbersForSixLine(value);
+      return nums.includes(result) ? amount * 6 : 0;
+    }
     default:
       return 0;
   }
+}
+
+export function splitPair(a, b) {
+  return [Math.min(a, b), Math.max(a, b)].join('-');
+}
+
+export function parseSplitValue(value) {
+  if (typeof value === 'string' && value.includes('-')) {
+    return value.split('-').map(Number).filter((n) => !Number.isNaN(n));
+  }
+  return [];
+}
+
+export function streetNumbers(col) {
+  return [TABLE_ROWS[2][col], TABLE_ROWS[1][col], TABLE_ROWS[0][col]];
+}
+
+export function streetAnchor(col) {
+  return Math.min(...streetNumbers(col));
+}
+
+export function cornerNumbers(row, col) {
+  return [
+    TABLE_ROWS[row][col],
+    TABLE_ROWS[row][col + 1],
+    TABLE_ROWS[row + 1][col],
+    TABLE_ROWS[row + 1][col + 1]
+  ];
+}
+
+export function cornerAnchor(row, col) {
+  return Math.min(...cornerNumbers(row, col));
+}
+
+export function sixLineNumbers(col) {
+  return [...streetNumbers(col), ...streetNumbers(col + 1)];
+}
+
+export function sixLineAnchor(col) {
+  return streetAnchor(col);
+}
+
+export function numbersForStreet(anchor) {
+  for (let c = 0; c < 12; c++) {
+    if (streetAnchor(c) === Number(anchor)) return streetNumbers(c);
+  }
+  return [];
+}
+
+export function numbersForCorner(anchor) {
+  const a = Number(anchor);
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 11; c++) {
+      if (cornerAnchor(r, c) === a) return cornerNumbers(r, c);
+    }
+  }
+  return [];
+}
+
+export function numbersForSixLine(anchor) {
+  const a = Number(anchor);
+  for (let c = 0; c < 11; c++) {
+    if (sixLineAnchor(c) === a) return sixLineNumbers(c);
+  }
+  return [];
 }
 
 export function betLabel(bet) {
@@ -98,7 +179,11 @@ export function betLabel(bet) {
     low: '1–18',
     high: '19–36',
     dozen: `${bet.value === 1 ? '1st' : bet.value === 2 ? '2nd' : '3rd'} 12`,
-    column: `Col ${bet.value}`
+    column: `Col ${bet.value}`,
+    split: `Split ${bet.value}`,
+    street: `Street ${bet.value}`,
+    corner: `Corner ${bet.value}`,
+    sixline: `Line ${bet.value}`
   };
   return labels[bet.type] || bet.type;
 }

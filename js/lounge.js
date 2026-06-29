@@ -1,15 +1,20 @@
-/** Nova Mirage Club — room picker, 3D floor, multiplayer, bar cam, management. */
+/** Nova Mirage Club — room picker, 3D floor, multiplayer, bar cam, voice, on-chain ownership. */
 
-import { CLUB_ROOMS, getClubRoom } from './club-rooms.js?v=34';
-import { renderAvatarPicker, bindAvatarCreator } from './club-avatars.js?v=34';
-import { ClubEngine } from './club-engine.js?v=34';
-import { ClubMultiplayer } from './club-multiplayer.js?v=34';
-import { BarVideoChat } from './club-video.js?v=34';
+import { CLUB_ROOMS, getClubRoom } from './club-rooms.js?v=35';
+import { renderAvatarPicker, bindAvatarCreator } from './club-avatars.js?v=35';
+import { ClubEngine } from './club-engine.js?v=35';
+import { ClubMultiplayer } from './club-multiplayer.js?v=35';
+import { BarVideoChat } from './club-video.js?v=35';
+import { DanceFloorVoice } from './club-voice.js?v=35';
 import {
   loadClubManagement, hireStaff, restock, startEvent, tickClub, renderManagementPanel
-} from './club-management.js?v=34';
-import { updateProfile } from './profile.js?v=34';
-import { casinoSound } from './sounds.js?v=34';
+} from './club-management.js?v=35';
+import {
+  fetchClubOwner, buyClubOwnership, CLUB_OWNERSHIP_PRICE, shortWallet
+} from './club-ownership.js?v=35';
+import { updateProfile } from './profile.js?v=35';
+import { casinoSound } from './sounds.js?v=35';
+import { getProvider } from './solana-wallet.js?v=35';
 
 export class MirageClub {
   constructor(root, profile, { onZone, onProfileUpdate } = {}) {
@@ -20,8 +25,10 @@ export class MirageClub {
     this.engine = null;
     this.mp = null;
     this.video = null;
+    this.voice = null;
     this.mgmt = loadClubManagement();
     this.mgmtTimer = null;
+    this.owner = null;
     this.selectedRoom = profile?.clubRoom || 'edm';
     this.showPicker();
   }
@@ -30,7 +37,7 @@ export class MirageClub {
     this.root.innerHTML = `
       <div class="club-picker-screen">
         <h2 class="club-picker-title">Choose your vibe</h2>
-        <p class="club-picker-sub">Walk in with real players · bar video chat · run the club</p>
+        <p class="club-picker-sub">Walk in with real players · proximity voice · own the club with $MT</p>
         <div class="club-room-grid">
           ${Object.values(CLUB_ROOMS).map((r) => `
             <button type="button" class="club-room-card${r.id === this.selectedRoom ? ' on' : ''}" data-room="${r.id}">
@@ -65,6 +72,7 @@ export class MirageClub {
     const room = getClubRoom(this.selectedRoom);
     this.profile = updateProfile({ clubRoom: room.id });
     this.onProfileUpdate(this.profile);
+    this.owner = await fetchClubOwner(room.id);
 
     this.root.innerHTML = `
       <div class="club-stage-3d" id="club-stage-3d"></div>
@@ -72,11 +80,13 @@ export class MirageClub {
         <div class="club-top-hud">
           <span class="club-venue">${room.name.toUpperCase()}</span>
           <span class="club-live" id="club-online">● connecting…</span>
+          <span class="club-owner-badge" id="club-owner-badge" hidden></span>
           <button type="button" class="club-mgmt-open" id="club-mgmt-open">Manage</button>
         </div>
         <p class="club-prompt" id="club-prompt" hidden></p>
         <button type="button" class="club-interact" id="club-interact" hidden>Enter</button>
         <button type="button" class="club-bar-cam" id="club-bar-cam" hidden>📹 Bar Cam</button>
+        <button type="button" class="club-voice-btn" id="club-voice-btn">🎤 Floor Voice</button>
         <div class="club-video-grid" id="club-video-grid" hidden></div>
         <div class="club-stick-wrap" id="club-stick-wrap">
           <div class="club-stick-base" id="club-stick-base"><div class="club-stick-knob" id="club-stick-knob"></div></div>
@@ -91,27 +101,45 @@ export class MirageClub {
       room,
       profile: this.profile,
       onZone: (z) => this.onNearZone(z),
-      onMove: () => {}
+      onMove: () => this.voice?.updateVolumes()
     });
 
     this.mp = new ClubMultiplayer({
       roomId: room.id,
       profile: this.profile,
-      onPeerState: (id, data) => this.engine?.upsertRemote(id, data),
-      onPeerJoin: (id) => this.updateOnline(),
+      onPeerState: (id, data) => {
+        this.engine?.upsertRemote(id, data);
+        this.voice?.updateVolumes();
+      },
+      onPeerJoin: (id) => {
+        this.updateOnline();
+        this.video?.connectToPeers();
+        this.voice?.onPeerJoin();
+      },
       onPeerLeave: (id) => {
         this.engine?.removeRemote(id);
+        this.video?.onPeerLeave(id);
+        this.voice?.onPeerLeave(id);
         this.updateOnline();
       }
     });
     this.mp.setLocalStateGetter(() => this.engine?.getLocalState() || {});
-    this.mp.onIncomingCall = null;
     await this.mp.connect().catch(() => {});
     this.updateOnline();
+    this.renderOwnerBadge();
 
     this.video = new BarVideoChat({
       multiplayer: this.mp,
       videoGrid: this.root.querySelector('#club-video-grid')
+    });
+
+    this.voice = new DanceFloorVoice({
+      multiplayer: this.mp,
+      getLocalPos: () => this.engine?.getPosition() || { x: 0, z: 0 },
+      getPeerPos: (id) => {
+        const p = this.mp?.getPeer(id);
+        return p ? { x: p.x || 0, z: p.z || 0 } : null;
+      }
     });
 
     this.bindControls();
@@ -119,6 +147,17 @@ export class MirageClub {
     this.mgmtTimer = setInterval(() => {
       this.mgmt = tickClub(this.mgmt, room.bpm);
     }, 8000);
+  }
+
+  renderOwnerBadge() {
+    const el = this.root.querySelector('#club-owner-badge');
+    if (!el) return;
+    if (this.owner?.wallet) {
+      el.hidden = false;
+      el.textContent = `👑 ${shortWallet(this.owner.wallet)}`;
+    } else {
+      el.hidden = true;
+    }
   }
 
   updateOnline() {
@@ -159,6 +198,7 @@ export class MirageClub {
     const interact = this.root.querySelector('#club-interact');
     const dance = this.root.querySelector('#club-dance');
     const barCam = this.root.querySelector('#club-bar-cam');
+    const voiceBtn = this.root.querySelector('#club-voice-btn');
     const mgmtOpen = this.root.querySelector('#club-mgmt-open');
     const drawer = this.root.querySelector('#club-mgmt-drawer');
 
@@ -184,6 +224,20 @@ export class MirageClub {
       } else toastMsg('Allow camera/mic for bar video');
     });
 
+    voiceBtn?.addEventListener('click', async () => {
+      if (this.voice?.active) {
+        this.voice.disable();
+        voiceBtn.classList.remove('on');
+        toastMsg('Floor voice off');
+        return;
+      }
+      const ok = await this.voice?.enable();
+      if (ok) {
+        voiceBtn.classList.add('on');
+        toastMsg('Proximity voice on — chat near dancers');
+      } else toastMsg('Allow microphone for floor voice');
+    });
+
     dance?.addEventListener('click', () => {
       const on = !this.engine?.dancing;
       this.engine?.setDancing(on);
@@ -199,8 +253,12 @@ export class MirageClub {
     this.bindJoystick();
   }
 
-  renderMgmt(drawer) {
+  async renderMgmt(drawer) {
     const room = getClubRoom(this.selectedRoom);
+    this.owner = await fetchClubOwner(room.id);
+    const wallet = getProvider()?.publicKey?.toString();
+    const isOwner = wallet && this.owner?.wallet === wallet;
+
     renderManagementPanel(drawer, this.mgmt, room, (action, arg) => {
       if (action === 'close') drawer.hidden = true;
       if (action === 'hire') {
@@ -218,7 +276,23 @@ export class MirageClub {
         if (!r.ok) toastMsg(r.error || 'Need DJ');
         else { this.mgmt = r.state; this.renderMgmt(drawer); toastMsg('Event launched!'); }
       }
-    });
+      if (action === 'buy-club') {
+        this.purchaseClub(room.id, drawer);
+      }
+    }, { owner: this.owner, wallet, isOwner, priceMt: CLUB_OWNERSHIP_PRICE });
+  }
+
+  async purchaseClub(roomId, drawer) {
+    try {
+      toastMsg(`Claiming club — ${CLUB_OWNERSHIP_PRICE} $MT on-chain…`);
+      const { owner } = await buyClubOwnership(roomId);
+      this.owner = owner;
+      this.renderOwnerBadge();
+      toastMsg('You own this club on-chain!');
+      this.renderMgmt(drawer);
+    } catch (err) {
+      toastMsg(err.message || 'Purchase failed');
+    }
   }
 
   bindJoystick() {
@@ -250,6 +324,7 @@ export class MirageClub {
 
   destroy() {
     if (this.mgmtTimer) clearInterval(this.mgmtTimer);
+    this.voice?.disable();
     this.video?.disable();
     this.mp?.destroy();
     this.engine?.destroy();

@@ -1,25 +1,26 @@
-/** Bar video chat — WebRTC via PeerJS when at the VIP bar. */
+/** Bar video chat — WebRTC via Nova Mirage signaling. */
+
+import { ClubWebRTC } from './club-webrtc.js?v=35';
 
 export class BarVideoChat {
   constructor({ multiplayer, videoGrid }) {
     this.mp = multiplayer;
     this.grid = videoGrid;
-    this.localStream = null;
-    this.calls = new Map();
+    this.rtc = new ClubWebRTC({
+      multiplayer: this.mp,
+      mediaMode: 'av',
+      onRemoteStream: (id, stream) => this.addRemote(id, stream)
+    });
     this.active = false;
   }
 
   async enable() {
-    if (this.active) return;
+    if (this.active) return true;
     try {
-      this.localStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 320 }, height: { ideal: 240 } },
-        audio: true
-      });
+      await this.rtc.enable();
       this.active = true;
       this.renderLocal();
-      this.mp.onIncomingCall = (call) => this.answer(call);
-      this.connectToPeers();
+      this.rtc.connectAll();
       return true;
     } catch (err) {
       console.warn('Bar cam:', err);
@@ -29,37 +30,18 @@ export class BarVideoChat {
 
   disable() {
     this.active = false;
-    this.calls.forEach((c) => c.close());
-    this.calls.clear();
-    this.localStream?.getTracks().forEach((t) => t.stop());
-    this.localStream = null;
+    this.rtc.disable();
     if (this.grid) this.grid.innerHTML = '';
     this.grid?.setAttribute('hidden', '');
   }
 
   connectToPeers() {
-    if (!this.localStream || !this.mp?.peer) return;
-    this.mp.getPeerIds().forEach((id) => {
-      if (id === 'host' || this.calls.has(id)) return;
-      const call = this.mp.callPeer(id, this.localStream);
-      if (!call) return;
-      this.calls.set(id, call);
-      call.on('stream', (stream) => this.addRemote(id, stream));
-      call.on('close', () => this.removeRemote(id));
-    });
-  }
-
-  answer(call) {
-    if (!this.localStream) return;
-    call.answer(this.localStream);
-    const id = call.peer;
-    this.calls.set(id, call);
-    call.on('stream', (stream) => this.addRemote(id, stream));
-    call.on('close', () => this.removeRemote(id));
+    if (this.active) this.rtc.connectAll();
   }
 
   renderLocal() {
-    if (!this.grid || !this.localStream) return;
+    const stream = this.rtc.localStream;
+    if (!this.grid || !stream) return;
     this.grid.removeAttribute('hidden');
     let tile = this.grid.querySelector('.bar-cam-local');
     if (!tile) {
@@ -74,7 +56,7 @@ export class BarVideoChat {
       tile.appendChild(v);
       this.grid.prepend(tile);
     }
-    tile.querySelector('video').srcObject = this.localStream;
+    tile.querySelector('video').srcObject = stream;
   }
 
   addRemote(id, stream) {
@@ -95,8 +77,8 @@ export class BarVideoChat {
     tile.querySelector('video').srcObject = stream;
   }
 
-  removeRemote(id) {
+  onPeerLeave(id) {
     this.grid?.querySelector(`[data-peer="${id}"]`)?.remove();
-    this.calls.delete(id);
+    this.rtc.hangup(id);
   }
 }

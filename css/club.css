@@ -65,9 +65,14 @@
 }
 .club-room-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   margin-bottom: 14px;
+}
+@media (min-width: 520px) {
+  .club-room-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 .club-room-card {
   text-align: left;
@@ -134,6 +139,60 @@
 .club-avatar-icon { font-size: 1.4rem; }
 .club-enter-btn { width: 100%; }
 
+.club-owner-badge {
+  font-size: 0.58rem;
+  color: var(--gold);
+  margin-left: 6px;
+}
+.club-voice-btn {
+  position: absolute;
+  left: 14px;
+  bottom: 92px;
+  pointer-events: auto;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 193, 7, 0.45);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--gold);
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+.club-voice-btn.on {
+  border-color: rgba(105, 240, 174, 0.6);
+  background: rgba(105, 240, 174, 0.2);
+  color: #69f0ae;
+}
+.club-voice-audio {
+  display: none;
+}
+.mgmt-ownership {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.65rem;
+}
+.mgmt-owner {
+  margin: 0 0 6px;
+  color: var(--muted);
+}
+.mgmt-owner code {
+  color: var(--gold);
+  font-size: 0.62rem;
+}
+.mgmt-you-own {
+  display: inline-block;
+  color: #69f0ae;
+  margin-bottom: 6px;
+}
+.mgmt-buy-club {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  background: rgba(255, 193, 7, 0.12);
+  color: var(--gold);
+  font-size: 0.68rem;
+  cursor: pointer;
+}
 .club-mgmt-open {
   margin-left: auto;
   pointer-events: auto;

@@ -1,4 +1,4 @@
-/** Club room themes — EDM, R&B, Uni, Boho (social gathering vibes). */
+/** Club room themes — EDM, R&B, Uni, Boho, Strip (GLB interior backdrops). */
 
 export const CLUB_ROOMS = {
   edm: {
@@ -11,7 +11,10 @@ export const CLUB_ROOMS = {
     fog: 0x12082a,
     lightA: 0x00e5ff,
     lightB: 0xff1744,
-    decor: 'industrial'
+    decor: 'industrial',
+    interiorGlb: '/assets/club/edm-interior.glb',
+    interiorScale: 0.45,
+    interiorY: 0
   },
   rnb: {
     id: 'rnb',
@@ -23,7 +26,10 @@ export const CLUB_ROOMS = {
     fog: 0x1a1008,
     lightA: 0xff8f00,
     lightB: 0xbf360c,
-    decor: 'velvet'
+    decor: 'velvet',
+    interiorGlb: '/assets/club/rnb-interior.glb',
+    interiorScale: 0.42,
+    interiorY: 0
   },
   uni: {
     id: 'uni',
@@ -35,7 +41,10 @@ export const CLUB_ROOMS = {
     fog: 0x0d1520,
     lightA: 0x40c4ff,
     lightB: 0x69f0ae,
-    decor: 'campus'
+    decor: 'campus',
+    interiorGlb: '/assets/club/uni-interior.glb',
+    interiorScale: 0.4,
+    interiorY: 0
   },
   boho: {
     id: 'boho',
@@ -47,7 +56,27 @@ export const CLUB_ROOMS = {
     fog: 0x1f1610,
     lightA: 0xffcc80,
     lightB: 0xa1887f,
-    decor: 'boho'
+    decor: 'boho',
+    interiorGlb: '/assets/club/boho-interior.glb',
+    interiorScale: 0.38,
+    interiorY: 0,
+    interiorRotY: Math.PI * 0.25
+  },
+  strip: {
+    id: 'strip',
+    name: 'Velour Room',
+    tagline: 'Neon poles · VIP rail · late-night energy',
+    crowd: 'High rollers · VIP · showtime',
+    bpm: 118,
+    palette: { floor: 0x140a18, accent: 0xff4081, warm: 0xe040fb, bar: 0x4a148c },
+    fog: 0x180818,
+    lightA: 0xff1744,
+    lightB: 0xea80fc,
+    decor: 'strip',
+    interiorGlb: '/assets/club/strip-interior.glb',
+    interiorScale: 0.4,
+    interiorY: 0,
+    interiorRotY: 0
   }
 };
 

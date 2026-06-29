@@ -53,7 +53,8 @@ export function startEvent(state, eventId) {
     edm: { name: 'EDM Takeover', rep: 8, cash: 400 },
     rnb: { name: 'Slow Jams Night', rep: 6, cash: 350 },
     uni: { name: 'Freshers Party', rep: 10, cash: 500 },
-    boho: { name: 'Sunset Sessions', rep: 5, cash: 280 }
+    boho: { name: 'Sunset Sessions', rep: 5, cash: 280 },
+    strip: { name: 'Velour Showcase', rep: 12, cash: 620 }
   };
   const ev = events[eventId];
   if (!ev) return { ok: false };
@@ -75,13 +76,27 @@ export function tickClub(state, roomBpm) {
   return s;
 }
 
-export function renderManagementPanel(el, state, room, onAction) {
+export function renderManagementPanel(el, state, room, onAction, ownership = {}) {
   if (!el) return;
   const ev = state.activeEvent;
+  const { owner, wallet, isOwner, priceMt = 500 } = ownership;
+  const ownerLine = owner?.wallet
+    ? `<p class="mgmt-owner">👑 Owner: <code>${owner.wallet.slice(0, 6)}…${owner.wallet.slice(-4)}</code></p>`
+    : `<p class="mgmt-owner">No on-chain owner — claim with $MT</p>`;
+  const buyBtn = !owner?.wallet && wallet
+    ? `<button type="button" class="mgmt-buy-club" data-buy-club>Buy club · ${priceMt} $MT</button>`
+    : '';
+  const ownerTag = isOwner ? '<span class="mgmt-you-own">You own this venue</span>' : '';
+
   el.innerHTML = `
     <div class="mgmt-head">
       <h3>Club Manager</h3>
       <button type="button" class="mgmt-close" id="mgmt-close">✕</button>
+    </div>
+    <div class="mgmt-ownership">
+      ${ownerLine}
+      ${ownerTag}
+      ${buyBtn}
     </div>
     <div class="mgmt-stats">
       <span>₵${state.cash.toLocaleString()}</span>
@@ -116,4 +131,5 @@ export function renderManagementPanel(el, state, room, onAction) {
   el.querySelectorAll('[data-hire]').forEach((b) => b.addEventListener('click', () => onAction?.('hire', b.dataset.hire)));
   el.querySelectorAll('[data-stock]').forEach((b) => b.addEventListener('click', () => onAction?.('stock', b.dataset.stock)));
   el.querySelector('[data-event]')?.addEventListener('click', () => onAction?.('event', room.id));
+  el.querySelector('[data-buy-club]')?.addEventListener('click', () => onAction?.('buy-club'));
 }

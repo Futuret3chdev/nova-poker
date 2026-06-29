@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { resolveClubAvatarUrl } from './club-avatars.js?v=34';
+import { resolveClubAvatarUrl } from './club-avatars.js?v=35';
 
 const ZONES = {
   bar: { x: -6, z: -2, r: 2.5, id: 'bar' },
@@ -29,8 +29,12 @@ export class ClubEngine {
     this.clock = new THREE.Clock();
     this._avatarCache = new Map();
 
+    this.proceduralMeshes = [];
+    this.interiorRoot = null;
+
     this.initRenderer();
     this.buildRoom();
+    this.loadInteriorBackdrop();
     this.loadPlayerAvatar();
     this.bindInput();
     this.animate();
@@ -107,6 +111,80 @@ export class ClubEngine {
         this.addBox(-9 + i * 5, 0.5, 8, 3, 1, 2, 0x4a148c);
       }
     }
+    if (this.room.decor === 'strip') {
+      this.addStripDecor();
+    }
+  }
+
+  addStripDecor() {
+    const poleMat = new THREE.MeshStandardMaterial({
+      color: 0xff4081,
+      emissive: 0xff1744,
+      emissiveIntensity: 0.5,
+      metalness: 0.9,
+      roughness: 0.2
+    });
+    [-4, 4].forEach((x) => {
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.2, 12), poleMat);
+      pole.position.set(x, 1.6, -1);
+      this.scene.add(pole);
+      this.proceduralMeshes.push(pole);
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(0.5, 0.04, 8, 24),
+        new THREE.MeshStandardMaterial({ color: 0xff4081, emissive: 0xff4081, emissiveIntensity: 0.8 })
+      );
+      ring.position.set(x, 2.8, -1);
+      ring.rotation.x = Math.PI / 2;
+      this.scene.add(ring);
+      this.proceduralMeshes.push(ring);
+    });
+    for (let i = 0; i < 5; i++) {
+      this.addBox(-10 + i * 5, 0.55, 7, 3.5, 1.1, 1.8, 0x311b92);
+    }
+  }
+
+  loadInteriorBackdrop() {
+    const url = this.room.interiorGlb;
+    if (!url) return;
+
+    this.loader.load(
+      url,
+      (gltf) => {
+        this.setProceduralVisible(false);
+        const root = gltf.scene;
+        root.traverse((c) => {
+          if (c.isMesh) {
+            c.castShadow = true;
+            c.receiveShadow = true;
+          }
+        });
+        const scale = this.room.interiorScale || 0.4;
+        root.scale.setScalar(scale);
+        root.position.y = this.room.interiorY || 0;
+        root.rotation.y = this.room.interiorRotY || 0;
+
+        const box = new THREE.Box3().setFromObject(root);
+        const center = box.getCenter(new THREE.Vector3());
+        root.position.x -= center.x * scale;
+        root.position.z -= center.z * scale;
+
+        this.interiorRoot = root;
+        this.scene.add(root);
+      },
+      undefined,
+      () => {
+        this.setProceduralVisible(true);
+      }
+    );
+  }
+
+  setProceduralVisible(on) {
+    if (this.floor) this.floor.visible = on;
+    if (this.grid) this.grid.visible = on;
+    this.proceduralMeshes.forEach((m) => { m.visible = on; });
+    this.scene.children.forEach((c) => {
+      if (c.userData?.clubProcedural) c.visible = on;
+    });
   }
 
   addBox(x, y, z, w, h, d, color, label) {
@@ -116,7 +194,9 @@ export class ClubEngine {
     );
     mesh.position.set(x, y, z);
     mesh.castShadow = true;
+    mesh.userData.clubProcedural = true;
     this.scene.add(mesh);
+    this.proceduralMeshes.push(mesh);
     if (label) this.addLabel(label, x, h + 1.2, z);
   }
 
@@ -126,7 +206,9 @@ export class ClubEngine {
       new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.6 })
     );
     ring.position.set(x, 2, z);
+    ring.userData.clubProcedural = true;
     this.scene.add(ring);
+    this.proceduralMeshes.push(ring);
     this.addLabel(label, x, 3.5, z);
   }
 
@@ -230,8 +312,13 @@ export class ClubEngine {
       z: this.pos.z,
       rot: this.rot,
       dancing: this.dancing,
-      nearBar: this.nearZone?.id === 'bar'
+      nearBar: this.nearZone?.id === 'bar',
+      onDanceFloor: Math.hypot(this.pos.x, this.pos.z - 2) < 10
     };
+  }
+
+  getPosition() {
+    return { x: this.pos.x, z: this.pos.z };
   }
 
   setMove(x, z) {

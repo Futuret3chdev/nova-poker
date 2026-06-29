@@ -1,4 +1,4 @@
-const CACHE = 'mt-poker-v33';
+const CACHE = 'mt-poker-v34';
 const SHELL = [
   '/',
   '/index.html',
@@ -13,6 +13,12 @@ const SHELL = [
   '/js/gate.js',
 
   '/js/lounge.js',
+  '/js/club-rooms.js',
+  '/js/club-avatars.js',
+  '/js/club-engine.js',
+  '/js/club-multiplayer.js',
+  '/js/club-video.js',
+  '/js/club-management.js',
   '/js/main.js',
   '/manifest.json',
   '/apple-touch-icon.png',

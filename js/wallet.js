@@ -1,7 +1,7 @@
 import {
   connectWalletType, disconnectSolana,
   fetchWalletMtBalance, fetchSolBalance, shortAddress
-} from './solana-wallet.js?v=30';
+} from './solana-wallet.js?v=34';
 
 const STORAGE_KEY = 'mt-poker-wallet';
 

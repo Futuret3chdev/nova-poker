@@ -1,31 +1,31 @@
-import { PokerGame } from './game.js?v=33';
-import { PokerUI } from './ui.js?v=33';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=33';
-import { artForGame } from './game-art.js?v=33';
-import { applyGameScene } from './game-scene.js?v=33';
-import { RouletteUI } from './roulette-ui.js?v=33';
-import { casinoSound, unlockAudio } from './sounds.js?v=33';
-import { celebrateWin, winTier } from './celebration.js?v=33';
-import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=33';
+import { PokerGame } from './game.js?v=34';
+import { PokerUI } from './ui.js?v=34';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=34';
+import { artForGame } from './game-art.js?v=34';
+import { applyGameScene } from './game-scene.js?v=34';
+import { RouletteUI } from './roulette-ui.js?v=34';
+import { casinoSound, unlockAudio } from './sounds.js?v=34';
+import { celebrateWin, winTier } from './celebration.js?v=34';
+import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=34';
 
-import { mountLoungePreview } from './lounge.js?v=33';
+import { mountLoungePreview } from './lounge.js?v=34';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress, adjustFreeChips
-} from './wallet.js?v=33';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=33';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=33';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=33';
+} from './wallet.js?v=34';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=34';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=34';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=34';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=33';
-import { renderAvatarHTML } from './avatar.js?v=33';
+} from './profile.js?v=34';
+import { renderAvatarHTML } from './avatar.js?v=34';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=33';
+} from './auth.js?v=34';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -332,6 +332,7 @@ function openLounge() {
   if (!requireCasinoAccess()) return;
   stopLounge();
   loungeScene = mountLoungePreview(document.getElementById('lounge-stage'), profile, {
+    onProfileUpdate: (p) => { profile = p; updateMenuPlayerBar(); },
     onZone: (zoneId) => {
       stopLounge();
       if (zoneId === 'roulette') openRoulette();
@@ -339,11 +340,7 @@ function openLounge() {
         showScreen('menu');
         document.querySelector('.lobby-cat[data-cat="poker"]')?.click();
       } else if (zoneId === 'slots') openLuckyReels();
-      else if (zoneId === 'bar') toast('Bartender pours a VIP drink — on the house tonight');
-      else if (zoneId === 'dj') {
-        casinoSound.clubHit();
-        toast('DJ drops the Nova Mirage mix — dance floor lit');
-      } else showScreen('menu');
+      else showScreen('menu');
     }
   });
   showScreen('lounge');

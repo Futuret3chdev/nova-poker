@@ -21,7 +21,10 @@ export const DEFAULT_PROFILE = {
     hairColor: '#2c1810',
     accessory: 'none',
     frameColor: '#e53935'
-  }
+  },
+  clubAvatarPreset: 'hostess',
+  clubAvatarUrl: null,
+  clubRoom: 'edm'
 };
 
 export function loadProfile() {

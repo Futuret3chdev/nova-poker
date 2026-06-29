@@ -3,11 +3,12 @@
 import {
   SYMBOLS, BET_STEPS, LINES, PAYTABLE, spinGridTease, evaluate
 } from './starfall.js';
-import { casinoSound, unlockAudio } from './sounds.js?v=39';
-import { celebrateWin, winTier } from './celebration.js?v=39';
-import { spawnAmbient, burstAt, chaseLights } from './game-fx.js?v=39';
+import { casinoSound, unlockAudio } from './sounds.js?v=40';
+import { celebrateWin, winTier } from './celebration.js?v=40';
+import { spawnAmbient, burstAt, chaseLights } from './game-fx.js?v=40';
 
 const ROW_H = 88;
+const REEL_PAD = 6;
 
 export class StarfallUI {
   constructor({ getBalance, onBalanceChange }) {
@@ -21,8 +22,8 @@ export class StarfallUI {
     this.buildReels();
     this.bind();
     this.renderBalance();
-    chaseLights(this.els.frame, 16);
-    this._stopAmbient = spawnAmbient(this.els.machine, 'stars', 32);
+    chaseLights(this.els.frame, 12);
+    this._stopAmbient = spawnAmbient(this.els.machine, 'stars', 14);
     this.tickJackpot();
     this.setMessage('Match 3+ on a payline — watch the reels light up');
   }
@@ -198,36 +199,37 @@ export class StarfallUI {
 
   async animateReels(grid) {
     const reels = [...this.els.reels.querySelectorAll('.sf-reel')];
-    const PAD = 5;
+    const stops = [];
 
-    const promises = reels.map((reel, col) => new Promise((resolve) => {
-      const strip = reel.querySelector('.sf-strip');
+    for (let col = 0; col < 5; col++) {
+      const strip = reels[col].querySelector('.sf-strip');
       strip.innerHTML = '';
       const padding = [];
-      for (let i = 0; i < PAD; i++) padding.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+      for (let i = 0; i < REEL_PAD; i++) {
+        padding.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+      }
       const finalRows = [grid[0][col], grid[1][col], grid[2][col]];
-      [...padding, ...finalRows, ...padding.slice(0, 1)].forEach((sym, i) => {
+      [...padding, ...finalRows, ...padding.slice(0, 2)].forEach((sym, i) => {
         strip.appendChild(this.symbolCell(sym, i));
       });
-      const offset = padding.length * ROW_H;
-      const dur = 0.42 + col * 0.09 + Math.random() * 0.06;
-      const startDelay = col * 55;
+      stops.push({ reel: reels[col], strip, offset: padding.length * ROW_H, col });
+    }
 
+    const promises = stops.map(({ reel, strip, offset, col }) => new Promise((resolve) => {
+      strip.classList.add('sf-spinning');
+      strip.style.transition = 'none';
+      strip.style.transform = 'translateY(0)';
+      void strip.offsetWidth;
+      const dur = 0.55 + col * 0.14 + Math.random() * 0.08;
+      strip.style.transition = `transform ${dur}s cubic-bezier(0.12, 0.8, 0.2, 1)`;
+      strip.style.transform = `translateY(-${offset}px)`;
       setTimeout(() => {
-        strip.classList.add('sf-spinning');
-        strip.style.transition = 'none';
-        strip.style.transform = 'translateY(0)';
-        void strip.offsetWidth;
-        strip.style.transition = `transform ${dur}s cubic-bezier(0.2, 0.9, 0.25, 1)`;
-        strip.style.transform = `translateY(-${offset}px)`;
-        setTimeout(() => {
-          casinoSound.reelStop(col);
-          strip.classList.remove('sf-spinning');
-          reel.classList.add('sf-reel-stop');
-          setTimeout(() => reel.classList.remove('sf-reel-stop'), 220);
-          resolve();
-        }, dur * 1000 + 20);
-      }, startDelay);
+        casinoSound.reelStop(col);
+        strip.classList.remove('sf-spinning');
+        reel.classList.add('sf-reel-stop');
+        setTimeout(() => reel.classList.remove('sf-reel-stop'), 160);
+        resolve();
+      }, dur * 1000 + 30);
     }));
 
     await Promise.all(promises);
@@ -242,7 +244,7 @@ export class StarfallUI {
       win.cells.forEach(({ row, col }) => {
         const reel = this.els.reels?.querySelector(`[data-col="${col}"]`);
         const cells = reel?.querySelectorAll('.sf-cell');
-        const idx = 5 + row;
+        const idx = REEL_PAD + row;
         cells?.[idx]?.classList.add('sf-cell-win');
       });
       lineRows.add(LINES[win.line][1]);

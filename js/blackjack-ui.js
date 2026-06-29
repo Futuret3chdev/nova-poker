@@ -6,8 +6,8 @@ import {
 } from './blackjack.js';
 import { cardLabel, cardColor } from './deck.js';
 import { casinoSound } from './sounds.js';
-import { celebrateWin, winTier } from './celebration.js?v=39';
-import { spawnAmbient, burstAt, showBanner } from './game-fx.js?v=39';
+import { celebrateWin, winTier } from './celebration.js?v=40';
+import { spawnAmbient, burstAt, showBanner } from './game-fx.js?v=40';
 
 const CHIPS = [10, 25, 50, 100, 500];
 const SUIT_SYM = { h: '♥', d: '♦', c: '♣', s: '♠' };
@@ -46,7 +46,7 @@ export class BlackjackUI {
     this.renderChipStack();
     this.setPhase('bet');
     this.setMessage('Tap felt to place chips — then DEAL');
-    this._stopAmbient = spawnAmbient(this.els.wrap, 'gold', 28);
+    this._stopAmbient = spawnAmbient(this.els.wrap, 'gold', 14);
   }
 
   cacheEls() {
@@ -223,7 +223,7 @@ export class BlackjackUI {
     if (hidden) wrap.dataset.hidden = '1';
     el?.appendChild(wrap);
     casinoSound.deal();
-    await this.wait(150);
+    await this.wait(280);
   }
 
   renderHands() {
@@ -292,7 +292,7 @@ export class BlackjackUI {
     this.setPhase('dealer');
     this.setMessage('Dealer reveals…');
     while (dealerShouldHit(this.dealer)) {
-      await this.wait(220);
+      await this.wait(380);
       await this.dealCard('dealer', this.dealer.length);
       this.updateValues();
     }
@@ -305,10 +305,10 @@ export class BlackjackUI {
     if (hiddenSlot) {
       hiddenSlot.classList.add('bj-flip');
       casinoSound.chip();
-      await this.wait(90);
+      await this.wait(180);
       hiddenSlot.innerHTML = renderBjCard(this.dealer[1]);
       hiddenSlot.removeAttribute('data-hidden');
-      await this.wait(180);
+      await this.wait(320);
     }
     this.updateValues();
   }

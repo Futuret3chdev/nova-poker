@@ -1,7 +1,7 @@
 /** On-chain club ownership — 500 $MT to treasury with memo. */
 
-import { MEMETORRENT } from './config.js?v=35';
-import { getProvider, walletSignAndSend, fetchWalletMtBalance } from './solana-wallet.js?v=35';
+import { MEMETORRENT } from './config.js?v=36';
+import { getProvider, walletSignAndSend, fetchWalletMtBalance } from './solana-wallet.js?v=36';
 
 export const CLUB_OWNERSHIP_PRICE = 500;
 const API = '/api/club/ownership';

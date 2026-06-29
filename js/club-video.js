@@ -1,6 +1,6 @@
 /** Bar video chat — WebRTC via Nova Mirage signaling. */
 
-import { ClubWebRTC } from './club-webrtc.js?v=35';
+import { ClubWebRTC } from './club-webrtc.js?v=36';
 
 export class BarVideoChat {
   constructor({ multiplayer, videoGrid }) {

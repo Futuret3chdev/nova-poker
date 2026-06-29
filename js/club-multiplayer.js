@@ -1,6 +1,6 @@
 /** Real-time multiplayer — Nova Mirage dedicated signaling (replaces PeerJS). */
 
-import { lobbyIdForRoom } from './club-rooms.js?v=35';
+import { lobbyIdForRoom } from './club-rooms.js?v=36';
 
 const API_SYNC = '/api/club/sync';
 const API_SIGNAL = '/api/club/signal';

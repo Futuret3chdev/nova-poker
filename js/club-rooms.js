@@ -49,8 +49,8 @@ export const CLUB_ROOMS = {
   boho: {
     id: 'boho',
     name: 'Boho Terrace',
-    tagline: 'Warm wood · plants · sunset cocktails',
-    crowd: 'Creatives · boho · rooftop vibes',
+    tagline: 'CGTrader interior · warm wood · rooftop cocktails',
+    crowd: 'Creatives · boho · sunset vibes',
     bpm: 100,
     palette: { floor: 0x2a1f14, accent: 0xd7ccc8, warm: 0xffab91, bar: 0x5d4037 },
     fog: 0x1f1610,
@@ -58,9 +58,12 @@ export const CLUB_ROOMS = {
     lightB: 0xa1887f,
     decor: 'boho',
     interiorGlb: '/assets/club/boho-interior.glb',
-    interiorScale: 0.38,
+    interiorFit: 26,
+    interiorScale: 1,
     interiorY: 0,
-    interiorRotY: Math.PI * 0.25
+    interiorRotY: -Math.PI / 2,
+    interiorTextures: ['/assets/club/textures/boho/Wood 1400 x 994 px 1502 22.jpg'],
+    spawn: { x: 0, z: 4 }
   },
   strip: {
     id: 'strip',

@@ -1,20 +1,20 @@
 /** Nova Mirage Club — room picker, 3D floor, multiplayer, bar cam, voice, on-chain ownership. */
 
-import { CLUB_ROOMS, getClubRoom } from './club-rooms.js?v=35';
-import { renderAvatarPicker, bindAvatarCreator } from './club-avatars.js?v=35';
-import { ClubEngine } from './club-engine.js?v=35';
-import { ClubMultiplayer } from './club-multiplayer.js?v=35';
-import { BarVideoChat } from './club-video.js?v=35';
-import { DanceFloorVoice } from './club-voice.js?v=35';
+import { CLUB_ROOMS, getClubRoom } from './club-rooms.js?v=36';
+import { renderAvatarPicker, bindAvatarCreator } from './club-avatars.js?v=36';
+import { ClubEngine } from './club-engine.js?v=36';
+import { ClubMultiplayer } from './club-multiplayer.js?v=36';
+import { BarVideoChat } from './club-video.js?v=36';
+import { DanceFloorVoice } from './club-voice.js?v=36';
 import {
   loadClubManagement, hireStaff, restock, startEvent, tickClub, renderManagementPanel
-} from './club-management.js?v=35';
+} from './club-management.js?v=36';
 import {
   fetchClubOwner, buyClubOwnership, CLUB_OWNERSHIP_PRICE, shortWallet
-} from './club-ownership.js?v=35';
-import { updateProfile } from './profile.js?v=35';
-import { casinoSound } from './sounds.js?v=35';
-import { getProvider } from './solana-wallet.js?v=35';
+} from './club-ownership.js?v=36';
+import { updateProfile } from './profile.js?v=36';
+import { casinoSound } from './sounds.js?v=36';
+import { getProvider } from './solana-wallet.js?v=36';
 
 export class MirageClub {
   constructor(root, profile, { onZone, onProfileUpdate } = {}) {
@@ -79,6 +79,7 @@ export class MirageClub {
       <div class="club-overlay">
         <div class="club-top-hud">
           <span class="club-venue">${room.name.toUpperCase()}</span>
+          <span class="club-load" id="club-load">Loading interior…</span>
           <span class="club-live" id="club-online">● connecting…</span>
           <span class="club-owner-badge" id="club-owner-badge" hidden></span>
           <button type="button" class="club-mgmt-open" id="club-mgmt-open">Manage</button>
@@ -102,6 +103,17 @@ export class MirageClub {
       profile: this.profile,
       onZone: (z) => this.onNearZone(z),
       onMove: () => this.voice?.updateVolumes()
+    });
+    stage.addEventListener('club-interior', (e) => {
+      const loadEl = this.root.querySelector('#club-load');
+      const { state, pct } = e.detail || {};
+      if (!loadEl) return;
+      if (state === 'loading') loadEl.textContent = `Loading interior… ${pct}%`;
+      if (state === 'ready') {
+        loadEl.textContent = '● CGTrader interior';
+        setTimeout(() => { loadEl.hidden = true; }, 2400);
+      }
+      if (state === 'fallback') loadEl.hidden = true;
     });
 
     this.mp = new ClubMultiplayer({

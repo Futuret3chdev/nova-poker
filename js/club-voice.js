@@ -1,6 +1,6 @@
 /** Proximity voice on the dance floor — distance-based volume. */
 
-import { ClubWebRTC } from './club-webrtc.js?v=35';
+import { ClubWebRTC } from './club-webrtc.js?v=36';
 
 const VOICE_RADIUS = 9;
 const FADE_RADIUS = 14;

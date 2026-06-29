@@ -2,7 +2,8 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { resolveClubAvatarUrl } from './club-avatars.js?v=35';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { resolveClubAvatarUrl } from './club-avatars.js?v=36';
 
 const ZONES = {
   bar: { x: -6, z: -2, r: 2.5, id: 'bar' },
@@ -26,11 +27,17 @@ export class ClubEngine {
     this.nearZone = null;
     this.remoteMeshes = new Map();
     this.loader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+    this.loader.setDRACOLoader(draco);
     this.clock = new THREE.Clock();
     this._avatarCache = new Map();
 
     this.proceduralMeshes = [];
     this.interiorRoot = null;
+    this.hasInterior = false;
+    this.walkBounds = { minX: -12, maxX: 12, minZ: -12, maxZ: 12 };
+    this.activeZones = { ...ZONES };
 
     this.initRenderer();
     this.buildRoom();
@@ -103,7 +110,9 @@ export class ClubEngine {
           new THREE.MeshStandardMaterial({ color: 0x2e7d32 })
         );
         plant.position.set(-8 + i * 3, 0.6, -6 + (i % 2) * 2);
+        plant.userData.clubProcedural = true;
         this.scene.add(plant);
+        this.proceduralMeshes.push(plant);
       }
     }
     if (this.room.decor === 'velvet') {
@@ -150,32 +159,128 @@ export class ClubEngine {
     this.loader.load(
       url,
       (gltf) => {
-        this.setProceduralVisible(false);
         const root = gltf.scene;
+        root.rotation.y = this.room.interiorRotY || 0;
+        this.applyInteriorMaterials(root);
         root.traverse((c) => {
           if (c.isMesh) {
             c.castShadow = true;
             c.receiveShadow = true;
           }
         });
-        const scale = this.room.interiorScale || 0.4;
-        root.scale.setScalar(scale);
-        root.position.y = this.room.interiorY || 0;
-        root.rotation.y = this.room.interiorRotY || 0;
 
-        const box = new THREE.Box3().setFromObject(root);
-        const center = box.getCenter(new THREE.Vector3());
-        root.position.x -= center.x * scale;
-        root.position.z -= center.z * scale;
-
+        this.fitInterior(root);
         this.interiorRoot = root;
+        this.hasInterior = true;
         this.scene.add(root);
+        this.setProceduralVisible(false);
+        this.configureInteriorLighting();
+        this.emitLoadState('ready');
       },
-      undefined,
+      (xhr) => {
+        if (xhr.total) {
+          const pct = Math.round((xhr.loaded / xhr.total) * 100);
+          this.emitLoadState('loading', pct);
+        }
+      },
       () => {
         this.setProceduralVisible(true);
+        this.emitLoadState('fallback');
       }
     );
+  }
+
+  emitLoadState(state, pct) {
+    this.container?.dispatchEvent(new CustomEvent('club-interior', {
+      detail: { state, pct, room: this.room.id }
+    }));
+  }
+
+  applyInteriorMaterials(root) {
+    const paths = this.room.interiorTextures;
+    if (!paths?.length) return;
+    const texLoader = new THREE.TextureLoader();
+    const map = texLoader.load(paths[0]);
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(2, 2);
+    map.colorSpace = THREE.SRGBColorSpace;
+
+    root.traverse((c) => {
+      if (!c.isMesh) return;
+      const hasMap = c.material?.map || (Array.isArray(c.material) && c.material.some((m) => m?.map));
+      if (hasMap) return;
+      c.material = new THREE.MeshStandardMaterial({
+        map,
+        roughness: 0.78,
+        metalness: 0.06,
+        color: 0xf5f0eb
+      });
+    });
+  }
+
+  fitInterior(root) {
+    const box = new THREE.Box3().setFromObject(root);
+    const size = box.getSize(new THREE.Vector3());
+    const target = this.room.interiorFit || 24;
+    const maxXZ = Math.max(size.x, size.z, 1);
+    const scale = (target / maxXZ) * (this.room.interiorScale || 1);
+    root.scale.setScalar(scale);
+
+    const fitted = new THREE.Box3().setFromObject(root);
+    const center = fitted.getCenter(new THREE.Vector3());
+    root.position.x -= center.x;
+    root.position.z -= center.z;
+    root.position.y -= fitted.min.y + (this.room.interiorY || 0);
+
+    const walk = new THREE.Box3().setFromObject(root);
+    const pad = 1.2;
+    this.walkBounds = {
+      minX: walk.min.x + pad,
+      maxX: walk.max.x - pad,
+      minZ: walk.min.z + pad,
+      maxZ: walk.max.z - pad
+    };
+
+    const cx = (this.walkBounds.minX + this.walkBounds.maxX) * 0.5;
+    const cz = (this.walkBounds.minZ + this.walkBounds.maxZ) * 0.5;
+    this.pos.x = this.room.spawn?.x ?? cx;
+    this.pos.z = this.room.spawn?.z ?? (this.walkBounds.maxZ - 2);
+    if (this.playerGroup) {
+      this.playerGroup.position.set(this.pos.x, 0, this.pos.z);
+    }
+
+    this.activeZones = this.room.interiorZones || this.zonesFromBounds();
+    const ceil = walk.max.y - walk.min.y;
+    this.scene.fog = new THREE.Fog(this.room.fog, ceil * 0.4, ceil * 2.2);
+    this.camera.far = Math.max(100, ceil * 4);
+    this.camera.updateProjectionMatrix();
+  }
+
+  zonesFromBounds() {
+    const b = this.walkBounds;
+    const cx = (b.minX + b.maxX) * 0.5;
+    const cz = (b.minZ + b.maxZ) * 0.5;
+    const w = b.maxX - b.minX;
+    const d = b.maxZ - b.minZ;
+    return {
+      bar: { x: b.minX + w * 0.18, z: cz, r: 2.8, id: 'bar' },
+      dj: { x: cx, z: b.minZ + d * 0.22, r: 2.5, id: 'dj' },
+      poker: { x: b.minX + w * 0.15, z: b.maxZ - d * 0.2, r: 2.2, id: 'poker' },
+      roulette: { x: b.maxX - w * 0.15, z: b.maxZ - d * 0.2, r: 2.2, id: 'roulette' },
+      slots: { x: b.maxX - w * 0.15, z: b.minZ + d * 0.35, r: 2.2, id: 'slots' }
+    };
+  }
+
+  configureInteriorLighting() {
+    this.scene.background = new THREE.Color(this.room.palette.floor);
+    if (this.spot) {
+      this.spot.intensity = 0.65;
+      this.spot.position.y = 18;
+    }
+    if (!this.interiorLight) {
+      this.interiorLight = new THREE.HemisphereLight(this.room.lightA, this.room.palette.floor, 0.55);
+      this.scene.add(this.interiorLight);
+    }
   }
 
   setProceduralVisible(on) {
@@ -184,6 +289,7 @@ export class ClubEngine {
     this.proceduralMeshes.forEach((m) => { m.visible = on; });
     this.scene.children.forEach((c) => {
       if (c.userData?.clubProcedural) c.visible = on;
+      if (c.isSprite && c.userData?.clubProcedural) c.visible = on;
     });
   }
 
@@ -226,7 +332,9 @@ export class ClubEngine {
     const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
     spr.position.set(x, y, z);
     spr.scale.set(3, 0.75, 1);
+    spr.userData.clubProcedural = true;
     this.scene.add(spr);
+    this.proceduralMeshes.push(spr);
   }
 
   async loadPlayerAvatar() {
@@ -358,8 +466,9 @@ export class ClubEngine {
   update(dt) {
     const speed = 4.5 * dt;
     if (Math.abs(this.move.x) > 0.05 || Math.abs(this.move.z) > 0.05) {
-      this.pos.x = THREE.MathUtils.clamp(this.pos.x + this.move.x * speed, -12, 12);
-      this.pos.z = THREE.MathUtils.clamp(this.pos.z + this.move.z * speed, -12, 12);
+      const b = this.walkBounds;
+      this.pos.x = THREE.MathUtils.clamp(this.pos.x + this.move.x * speed, b.minX, b.maxX);
+      this.pos.z = THREE.MathUtils.clamp(this.pos.z + this.move.z * speed, b.minZ, b.maxZ);
       this.rot = Math.atan2(this.move.x, this.move.z);
       this.dancing = false;
     }
@@ -375,7 +484,7 @@ export class ClubEngine {
 
     let near = null;
     let best = 999;
-    for (const z of Object.values(ZONES)) {
+    for (const z of Object.values(this.activeZones)) {
       const d = Math.hypot(this.pos.x - z.x, this.pos.z - z.z);
       if (d < z.r && d < best) {
         best = d;
@@ -393,11 +502,13 @@ export class ClubEngine {
     this.raf = requestAnimationFrame(() => this.animate());
     const dt = this.clock.getDelta();
     this.update(dt);
+    const camH = this.hasInterior ? 5.2 : 6.5;
+    const camD = this.hasInterior ? 7.5 : 10;
     this.camera.position.lerp(
-      new THREE.Vector3(this.pos.x, 6.5, this.pos.z + 10),
+      new THREE.Vector3(this.pos.x, camH, this.pos.z + camD),
       0.08
     );
-    this.camera.lookAt(this.pos.x, 1.5, this.pos.z);
+    this.camera.lookAt(this.pos.x, this.hasInterior ? 1.8 : 1.5, this.pos.z);
     this.renderer.render(this.scene, this.camera);
   }
 

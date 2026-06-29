@@ -1,31 +1,31 @@
-import { PokerGame } from './game.js?v=35';
-import { PokerUI } from './ui.js?v=35';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=35';
-import { artForGame } from './game-art.js?v=35';
-import { applyGameScene } from './game-scene.js?v=35';
-import { RouletteUI } from './roulette-ui.js?v=35';
-import { casinoSound, unlockAudio } from './sounds.js?v=35';
-import { celebrateWin, winTier } from './celebration.js?v=35';
-import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=35';
+import { PokerGame } from './game.js?v=36';
+import { PokerUI } from './ui.js?v=36';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=36';
+import { artForGame } from './game-art.js?v=36';
+import { applyGameScene } from './game-scene.js?v=36';
+import { RouletteUI } from './roulette-ui.js?v=36';
+import { casinoSound, unlockAudio } from './sounds.js?v=36';
+import { celebrateWin, winTier } from './celebration.js?v=36';
+import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=36';
 
-import { mountLoungePreview } from './lounge.js?v=35';
+import { mountLoungePreview } from './lounge.js?v=36';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress, adjustFreeChips
-} from './wallet.js?v=35';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=35';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=35';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=35';
+} from './wallet.js?v=36';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=36';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=36';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=36';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=35';
-import { renderAvatarHTML } from './avatar.js?v=35';
+} from './profile.js?v=36';
+import { renderAvatarHTML } from './avatar.js?v=36';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=35';
+} from './auth.js?v=36';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches

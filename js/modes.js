@@ -140,10 +140,11 @@ export const CASINO_GAME_SECTIONS = [
       {
         id: 'starfall-spins',
         title: 'Starfall Spins',
-        subtitle: 'Cascading wins under neon lights',
+        subtitle: 'Neon reels · 5 paylines · big win FX',
         icon: '✨',
-        badge: 'SOON',
-        status: 'soon'
+        badge: 'LIVE',
+        status: 'live',
+        game: 'starfall'
       },
       {
         id: 'diamond-drift',
@@ -168,7 +169,7 @@ export const CASINO_GAME_SECTIONS = [
     title: 'Casino Floor',
     subtitle: 'More games — opening soon on Nova Mirage',
     games: [
-      { id: 'blackjack', title: 'Blackjack', subtitle: 'Beat the dealer to 21', icon: '🃏', badge: 'SOON', status: 'soon' },
+      { id: 'blackjack', title: 'Blackjack', subtitle: 'Animated table · 3:2 blackjack', icon: '🃏', badge: 'LIVE', status: 'live', game: 'blackjack' },
       { id: 'roulette', title: 'Roulette', subtitle: 'European wheel — free chips', icon: '🎡', badge: 'LIVE', status: 'live', game: 'roulette' },
       { id: 'baccarat', title: 'Baccarat', subtitle: 'Player vs banker elegance', icon: '🂡', badge: 'SOON', status: 'soon' },
       { id: 'craps', title: 'Craps', subtitle: 'Roll the dice on the pass line', icon: '🎲', badge: 'SOON', status: 'soon' },

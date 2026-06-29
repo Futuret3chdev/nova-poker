@@ -1,0 +1,293 @@
+/* ── Starfall Spins — neon reel cabinet ── */
+#starfall-screen {
+  flex-direction: column;
+  background: #030208;
+  overflow: hidden;
+}
+
+.sf-cabinet {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0 10px 14px;
+}
+
+.sf-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+}
+.sf-back {
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.sf-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  background: linear-gradient(90deg, #ffc107, #ff4081, #7c4dff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  flex: 1;
+}
+.sf-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 0.58rem;
+  color: var(--muted);
+  gap: 2px;
+}
+.sf-stats strong { color: #69f0ae; }
+
+.sf-machine {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.sf-frame {
+  position: relative;
+  width: min(100%, 500px);
+  padding: 14px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, #1a1030 0%, #0a0614 50%, #1a0828 100%);
+  border: 2px solid rgba(124, 77, 255, 0.45);
+  box-shadow:
+    0 0 40px rgba(124, 77, 255, 0.25),
+    inset 0 0 30px rgba(0, 0, 0, 0.5);
+  transition: box-shadow 0.3s ease;
+}
+.sf-machine.sf-win-flash .sf-frame {
+  animation: sf-win-glow 0.8s ease infinite alternate;
+  border-color: rgba(255, 193, 7, 0.7);
+}
+.sf-machine.sf-jackpot .sf-frame {
+  animation: sf-jackpot-shake 0.4s ease infinite;
+}
+@keyframes sf-win-glow {
+  from { box-shadow: 0 0 30px rgba(255, 193, 7, 0.4); }
+  to { box-shadow: 0 0 60px rgba(255, 64, 129, 0.5); }
+}
+@keyframes sf-jackpot-shake {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-0.6deg); }
+  75% { transform: rotate(0.6deg); }
+}
+
+.sf-marquee {
+  text-align: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.25em;
+  color: rgba(255, 193, 7, 0.7);
+  margin-bottom: 10px;
+  animation: sf-marquee-blink 2s ease-in-out infinite;
+}
+@keyframes sf-marquee-blink {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; text-shadow: 0 0 12px rgba(255, 193, 7, 0.8); }
+}
+
+.sf-window {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #050510;
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  height: 264px;
+}
+
+.sf-line-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.sf-win-line {
+  width: 100%;
+  height: 100%;
+}
+.sf-win-line path {
+  stroke-dasharray: 600;
+  animation: sf-line-draw 0.6s ease-out forwards, sf-line-pulse 1s ease-in-out 0.6s infinite alternate;
+}
+@keyframes sf-line-draw {
+  from { stroke-dashoffset: 600; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes sf-line-pulse {
+  from { stroke-width: 3; opacity: 0.8; }
+  to { stroke-width: 6; opacity: 1; filter: drop-shadow(0 0 8px #ffc107); }
+}
+
+.sf-reels {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: 100%;
+  gap: 2px;
+  padding: 2px;
+}
+
+.sf-reel {
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(180deg, rgba(124, 77, 255, 0.08) 0%, transparent 30%, transparent 70%, rgba(124, 77, 255, 0.08) 100%);
+}
+.sf-reel::before,
+.sf-reel::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 28%;
+  z-index: 2;
+  pointer-events: none;
+}
+.sf-reel::before {
+  top: 0;
+  background: linear-gradient(180deg, #050510 0%, transparent 100%);
+}
+.sf-reel::after {
+  bottom: 0;
+  background: linear-gradient(0deg, #050510 0%, transparent 100%);
+}
+
+.sf-strip {
+  will-change: transform;
+}
+.sf-strip.sf-spinning .sf-icon {
+  filter: blur(2px);
+  opacity: 0.85;
+}
+
+.sf-cell {
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.sf-tier-jackpot .sf-icon {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 2.6rem;
+  background: linear-gradient(180deg, #fff 0%, #ffc107 50%, #ff6f00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 8px rgba(255, 193, 7, 0.6));
+}
+.sf-cell-win {
+  animation: sf-cell-pop 0.5s ease infinite alternate;
+  background: rgba(255, 193, 7, 0.15);
+  border-radius: 8px;
+}
+@keyframes sf-cell-pop {
+  from { transform: scale(1); }
+  to { transform: scale(1.12); filter: drop-shadow(0 0 12px #ffc107); }
+}
+
+.sf-paytable {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  justify-content: center;
+  margin-top: 10px;
+  font-size: 0.58rem;
+  color: var(--muted);
+}
+.sf-pay-item b { font-size: 0.85rem; }
+
+.sf-message {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  padding: 8px;
+  min-height: 2em;
+}
+.sf-msg-win { color: #69f0ae; font-weight: 600; }
+.sf-msg-lose { color: #888; }
+
+.sf-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+.sf-bet-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sf-bet-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.sf-bet-amt {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.9rem;
+  color: var(--gold);
+  min-width: 80px;
+  text-align: center;
+}
+.sf-spin-btn {
+  width: min(100%, 280px);
+  padding: 16px 24px;
+  border: none;
+  border-radius: 999px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  color: #1a0800;
+  cursor: pointer;
+  background: linear-gradient(145deg, #ffe082 0%, #ffc107 40%, #ff6f00 100%);
+  box-shadow:
+    0 4px 20px rgba(255, 193, 7, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4);
+  transition: transform 0.12s ease, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.sf-spin-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+  transform: translateX(-100%);
+  animation: sf-spin-shine 3s ease-in-out infinite;
+}
+@keyframes sf-spin-shine {
+  0%, 70% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.sf-spin-btn:not(:disabled):active {
+  transform: scale(0.96);
+}
+.sf-spin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sf-last-win {
+  font-size: 0.68rem;
+  color: #69f0ae;
+}

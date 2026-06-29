@@ -1,0 +1,272 @@
+/* ── Blackjack — animated felt table ── */
+#blackjack-screen {
+  flex-direction: column;
+  background: #050308;
+  overflow: hidden;
+}
+
+.bj-cabinet {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0 10px 12px;
+}
+
+.bj-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+}
+.bj-back {
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.bj-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  flex: 1;
+}
+.bj-bank {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.bj-bank strong { color: #69f0ae; }
+
+.bj-table-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 900px;
+}
+
+.bj-table {
+  width: min(100%, 520px);
+  position: relative;
+  transition: transform 0.4s ease;
+}
+.bj-table.bj-round-end {
+  animation: bj-table-pulse 0.6s ease;
+}
+@keyframes bj-table-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.bj-felt {
+  position: relative;
+  border-radius: 140px / 70px;
+  min-height: 340px;
+  padding: 28px 20px 24px;
+  background:
+    radial-gradient(ellipse 90% 80% at 50% 40%, rgba(46, 125, 50, 0.95) 0%, rgba(27, 94, 32, 0.98) 55%, rgba(13, 58, 18, 1) 100%);
+  border: 4px solid rgba(255, 193, 7, 0.35);
+  box-shadow:
+    0 0 40px rgba(124, 77, 255, 0.15),
+    inset 0 0 60px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+.bj-felt::before {
+  content: 'BLACKJACK PAYS 3 TO 2';
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: rgba(255, 193, 7, 0.45);
+  white-space: nowrap;
+}
+
+.bj-dealer-zone,
+.bj-player-zone {
+  text-align: center;
+  margin: 12px 0;
+}
+.bj-zone-label {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 6px;
+}
+.bj-hand-val {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  color: var(--gold);
+  min-height: 1.2em;
+  margin-top: 6px;
+}
+
+.bj-cards {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  min-height: 108px;
+  flex-wrap: wrap;
+}
+
+.bj-card-slot {
+  animation: bj-deal-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--deal-i, 0) * 0.08s);
+}
+@keyframes bj-deal-in {
+  from {
+    opacity: 0;
+    transform: translateY(-80px) translateX(40px) rotate(-12deg) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+.bj-card-slot.bj-flip .card {
+  animation: bj-flip 0.45s ease-in-out;
+}
+@keyframes bj-flip {
+  0% { transform: rotateY(0); }
+  50% { transform: rotateY(90deg); }
+  100% { transform: rotateY(0); }
+}
+
+.bj-table .card {
+  width: 62px;
+  height: 88px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  font-size: 1.1rem;
+}
+
+.bj-bet-spot {
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 193, 7, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: var(--gold);
+  pointer-events: none;
+}
+
+.bj-chip-fly {
+  position: absolute;
+  bottom: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: linear-gradient(145deg, #ffc107, #ff8f00);
+  color: #1a0a00;
+  font-weight: 700;
+  font-size: 0.7rem;
+  animation: bj-chip-fly 0.65s ease-out forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes bj-chip-fly {
+  0% { opacity: 0; transform: translateX(-50%) translateY(60px) scale(0.5); }
+  40% { opacity: 1; }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.bj-message {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: 8px 12px;
+  min-height: 2.4em;
+}
+.bj-msg-win { color: #69f0ae; }
+.bj-msg-blackjack,
+.bj-message.bj-msg-blackjack { color: var(--gold); font-weight: 600; text-shadow: 0 0 20px rgba(255, 193, 7, 0.5); }
+.bj-msg-lose { color: #ef5350; }
+
+.bj-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+}
+.bj-chip-tray {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.bj-chip {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  background: radial-gradient(circle at 30% 30%, #fff 0%, #ffc107 40%, #e65100 100%);
+  color: #1a0800;
+  font-weight: 700;
+  font-size: 0.62rem;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease;
+}
+.bj-chip.on {
+  transform: scale(1.1);
+  border-color: #fff;
+  box-shadow: 0 0 16px rgba(255, 193, 7, 0.6);
+}
+.bj-chip:active { transform: scale(0.95); }
+
+.bj-actions {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+@media (max-width: 400px) {
+  .bj-actions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .bj-btn-double { grid-column: span 1; }
+}
+.bj-btn {
+  padding: 12px 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.bj-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.bj-btn-deal {
+  background: linear-gradient(145deg, rgba(255, 193, 7, 0.35), rgba(255, 111, 0, 0.25));
+  border-color: rgba(255, 193, 7, 0.5);
+  color: var(--gold);
+}
+.bj-btn-hit { border-color: rgba(105, 240, 174, 0.4); color: #69f0ae; }
+.bj-btn-stand { border-color: rgba(124, 77, 255, 0.4); color: #b388ff; }
+.bj-btn-double { border-color: rgba(255, 64, 129, 0.4); color: #ff4081; }
+.bj-btn:not(:disabled):active { transform: scale(0.96); }
+
+.bj-table[data-phase="play"] .bj-felt {
+  box-shadow: 0 0 50px rgba(105, 240, 174, 0.12), inset 0 0 60px rgba(0, 0, 0, 0.35);
+}

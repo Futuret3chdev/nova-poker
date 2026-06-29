@@ -143,5 +143,16 @@ export const casinoSound = {
     unlockAudio();
     tone(220, 0.1, 'square', 0.08);
     tone(440, 0.12, 'sine', 0.07, 0.05);
+  },
+
+  reelStop(col = 0) {
+    unlockAudio();
+    tone(280 + col * 40, 0.08, 'square', 0.09);
+    tone(520 + col * 30, 0.06, 'sine', 0.05, 0.04);
+  },
+
+  reelTick() {
+    unlockAudio();
+    tone(180 + Math.random() * 60, 0.02, 'triangle', 0.04);
   }
 };

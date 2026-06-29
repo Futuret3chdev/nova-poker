@@ -17,12 +17,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=36">
-  <link rel="stylesheet" href="/css/roulette.css?v=36">
-  <link rel="stylesheet" href="/css/game-scene.css?v=36">
-  <link rel="stylesheet" href="/css/celebration.css?v=36">
-  <link rel="stylesheet" href="/css/gate.css?v=36">
-  <link rel="stylesheet" href="/css/club.css?v=36">
+  <link rel="stylesheet" href="/css/style.css?v=37">
+  <link rel="stylesheet" href="/css/roulette.css?v=37">
+  <link rel="stylesheet" href="/css/game-scene.css?v=37">
+  <link rel="stylesheet" href="/css/celebration.css?v=37">
+  <link rel="stylesheet" href="/css/gate.css?v=37">
+  <link rel="stylesheet" href="/css/blackjack.css?v=37">
+  <link rel="stylesheet" href="/css/starfall.css?v=37">
 </head>
 <body>
   <div id="age-gate-frame" class="age-gate-frame" aria-hidden="true">
@@ -128,7 +129,6 @@
             <div class="header-profile-avatar" id="menu-player-avatar"></div>
             <span class="header-profile-name" id="menu-player-name">Player1</span>
           </div>
-          <button type="button" class="btn-lounge-entry" id="btn-lounge-entry">Club</button>
           <button type="button" class="btn-wallet btn-wallet-compact" id="btn-connect">Wallet</button>
         </div>
       </header>
@@ -422,17 +422,89 @@
       </footer>
     </section>
 
-    <!-- NOVA MIRAGE CLUB (walkable party floor) -->
-    <section id="lounge-screen" class="screen">
-      <header class="menu-header">
-        <button type="button" class="btn-ghost" id="btn-lounge-back">← Lobby</button>
-        <div class="menu-header-center">
-          <span class="eco-pill">PARTY FLOOR</span>
-          <h2>Nova Mirage Club</h2>
+    <!-- BLACKJACK -->
+    <section id="blackjack-screen" class="screen">
+      <div class="game-scene" id="blackjack-scene" aria-hidden="true">
+        <img class="game-scene-img" alt="">
+        <div class="game-scene-vignette"></div>
+        <div class="game-scene-fx fx-glow"></div>
+        <div class="game-scene-fx fx-embers"></div>
+        <div class="game-scene-fx fx-shimmer"></div>
+      </div>
+      <div class="game-scene-content bj-cabinet">
+        <header class="bj-top">
+          <button type="button" class="bj-back" id="btn-blackjack-back">←</button>
+          <h1 class="bj-title">BLACKJACK</h1>
+          <div class="bj-bank">BANK <strong>₵<span id="bj-balance">10,000</span></strong></div>
+        </header>
+        <div class="bj-table-wrap">
+          <div class="bj-table" id="bj-table" data-phase="bet">
+            <div class="bj-felt">
+              <div class="bj-dealer-zone">
+                <p class="bj-zone-label">Dealer</p>
+                <div class="bj-cards" id="bj-dealer-cards"></div>
+                <p class="bj-hand-val" id="bj-dealer-val"></p>
+              </div>
+              <div class="bj-bet-spot">₵<span id="bj-bet-amt">0</span></div>
+              <div class="bj-player-zone">
+                <p class="bj-zone-label">You</p>
+                <div class="bj-cards" id="bj-player-cards"></div>
+                <p class="bj-hand-val" id="bj-player-val"></p>
+              </div>
+            </div>
+          </div>
         </div>
-      </header>
-      <div class="lounge-wrap">
-        <div class="lounge-stage" id="lounge-stage"></div>
+        <p class="bj-message" id="bj-message">Tap felt to bet · Deal when ready</p>
+        <footer class="bj-footer">
+          <div class="bj-chip-tray" id="bj-chip-tray"></div>
+          <div class="bj-actions">
+            <button type="button" class="bj-btn bj-btn-clear" id="btn-bj-clear">CLEAR</button>
+            <button type="button" class="bj-btn bj-btn-deal" id="btn-bj-deal">DEAL</button>
+            <button type="button" class="bj-btn bj-btn-hit" id="btn-bj-hit" disabled>HIT</button>
+            <button type="button" class="bj-btn bj-btn-stand" id="btn-bj-stand" disabled>STAND</button>
+            <button type="button" class="bj-btn bj-btn-double" id="btn-bj-double" disabled>DOUBLE</button>
+          </div>
+        </footer>
+      </div>
+    </section>
+
+    <!-- STARFALL SPINS -->
+    <section id="starfall-screen" class="screen">
+      <div class="game-scene" id="starfall-scene" aria-hidden="true">
+        <img class="game-scene-img" alt="">
+        <div class="game-scene-vignette"></div>
+        <div class="game-scene-fx fx-glow"></div>
+        <div class="game-scene-fx fx-stars"></div>
+        <div class="game-scene-fx fx-shimmer"></div>
+      </div>
+      <div class="game-scene-content sf-cabinet">
+        <header class="sf-top">
+          <button type="button" class="sf-back" id="btn-starfall-back">←</button>
+          <h1 class="sf-title">STARFALL SPINS</h1>
+          <div class="sf-stats">
+            <span>BANK <strong>₵<span id="sf-balance">10,000</span></strong></span>
+            <span class="sf-last-win">WIN <strong id="sf-last-win">—</strong></span>
+          </div>
+        </header>
+        <div class="sf-machine" id="sf-machine">
+          <div class="sf-frame">
+            <p class="sf-marquee">✦ NEON REELS ✦ 5 LINES ✦</p>
+            <div class="sf-window">
+              <div class="sf-line-overlay" id="sf-line-overlay"></div>
+              <div class="sf-reels" id="sf-reels"></div>
+            </div>
+            <div class="sf-paytable" id="sf-paytable"></div>
+          </div>
+        </div>
+        <p class="sf-message" id="sf-message">Match 3+ symbols on a payline</p>
+        <footer class="sf-footer">
+          <div class="sf-bet-row">
+            <button type="button" class="sf-bet-btn" id="btn-sf-bet-down">−</button>
+            <span class="sf-bet-amt">BET ₵<span id="sf-bet">125</span></span>
+            <button type="button" class="sf-bet-btn" id="btn-sf-bet-up">+</button>
+          </div>
+          <button type="button" class="sf-spin-btn" id="btn-sf-spin">SPIN</button>
+        </footer>
       </div>
     </section>
 
@@ -549,23 +621,7 @@
 
   <div id="celebration-layer" class="celebration-layer" aria-hidden="true" hidden></div>
 
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
-
-  <div id="club-avatar-modal" class="club-avatar-modal" hidden>
-    <div class="club-avatar-modal-card">
-      <button type="button" class="club-avatar-close" id="club-avatar-close">✕</button>
-      <iframe id="club-avatar-iframe" title="Create CGI avatar" allow="camera *; microphone *"></iframe>
-    </div>
-  </div>
-
-  <script type="module" src="/js/main.js?v=36"></script>
+  <script type="module" src="/js/main.js?v=37"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

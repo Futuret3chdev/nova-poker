@@ -1,31 +1,31 @@
-import { PokerGame } from './game.js?v=36';
-import { PokerUI } from './ui.js?v=36';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=36';
-import { artForGame } from './game-art.js?v=36';
-import { applyGameScene } from './game-scene.js?v=36';
-import { RouletteUI } from './roulette-ui.js?v=36';
-import { casinoSound, unlockAudio } from './sounds.js?v=36';
-import { celebrateWin, winTier } from './celebration.js?v=36';
-import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=36';
-
-import { mountLoungePreview } from './lounge.js?v=36';
+import { PokerGame } from './game.js?v=37';
+import { PokerUI } from './ui.js?v=37';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=37';
+import { artForGame } from './game-art.js?v=37';
+import { applyGameScene } from './game-scene.js?v=37';
+import { RouletteUI } from './roulette-ui.js?v=37';
+import { BlackjackUI } from './blackjack-ui.js?v=37';
+import { StarfallUI } from './starfall-ui.js?v=37';
+import { casinoSound, unlockAudio } from './sounds.js?v=37';
+import { celebrateWin, winTier } from './celebration.js?v=37';
+import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=37';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress, adjustFreeChips
-} from './wallet.js?v=36';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=36';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=36';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=36';
+} from './wallet.js?v=37';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=37';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=37';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=37';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=36';
-import { renderAvatarHTML } from './avatar.js?v=36';
+} from './profile.js?v=37';
+import { renderAvatarHTML } from './avatar.js?v=37';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=36';
+} from './auth.js?v=37';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -54,7 +54,8 @@ function setupInstallHint() {
 let game = null;
 let ui = null;
 let rouletteUI = null;
-let loungeScene = null;
+let blackjackUI = null;
+let starfallUI = null;
 let pokerWasHumanTurn = false;
 let wallet = loadWallet();
 let profile = loadProfile();
@@ -223,7 +224,11 @@ function renderGameCard(game, sectionId) {
       ? 'Live on-chain · $MT'
       : live && game.game === 'roulette'
         ? 'Free chips · European wheel'
-        : 'Opening soon';
+        : live && game.game === 'blackjack'
+          ? 'Free chips · 3:2 blackjack'
+          : live && game.game === 'starfall'
+            ? 'Free chips · 5 neon paylines'
+            : 'Opening soon';
 
   const badge = data.badge || (live ? 'LIVE' : 'SOON');
   const imgSrc = art.image || '';
@@ -233,6 +238,8 @@ function renderGameCard(game, sectionId) {
     if (mode) selectMode(mode);
     else if (game.external) openLuckyReels();
     else if (game.game === 'roulette') openRoulette();
+    else if (game.game === 'blackjack') openBlackjack();
+    else if (game.game === 'starfall') openStarfall();
   };
 
   card.innerHTML = `
@@ -328,27 +335,44 @@ function openLuckyReels() {
   showScreen('reels');
 }
 
-function openLounge() {
+function openBlackjack() {
   if (!requireCasinoAccess()) return;
-  stopLounge();
-  loungeScene = mountLoungePreview(document.getElementById('lounge-stage'), profile, {
-    onProfileUpdate: (p) => { profile = p; updateMenuPlayerBar(); },
-    onZone: (zoneId) => {
-      stopLounge();
-      if (zoneId === 'roulette') openRoulette();
-      else if (zoneId === 'poker') {
-        showScreen('menu');
-        document.querySelector('.lobby-cat[data-cat="poker"]')?.click();
-      } else if (zoneId === 'slots') openLuckyReels();
-      else showScreen('menu');
+  applyGameScene('blackjack-scene', 'blackjack');
+  unlockAudio();
+  stopBlackjack();
+  blackjackUI = new BlackjackUI({
+    getBalance: () => wallet.freeChips,
+    onBalanceChange: (delta) => {
+      wallet = adjustFreeChips(wallet, delta);
+      updateWalletUI();
     }
   });
-  showScreen('lounge');
+  showScreen('blackjack');
 }
 
-function stopLounge() {
-  loungeScene?.destroy();
-  loungeScene = null;
+function stopBlackjack() {
+  blackjackUI?.destroy();
+  blackjackUI = null;
+}
+
+function openStarfall() {
+  if (!requireCasinoAccess()) return;
+  applyGameScene('starfall-scene', 'starfall-spins');
+  unlockAudio();
+  stopStarfall();
+  starfallUI = new StarfallUI({
+    getBalance: () => wallet.freeChips,
+    onBalanceChange: (delta) => {
+      wallet = adjustFreeChips(wallet, delta);
+      updateWalletUI();
+    }
+  });
+  showScreen('starfall');
+}
+
+function stopStarfall() {
+  starfallUI?.destroy();
+  starfallUI = null;
 }
 
 function openRoulette() {
@@ -938,9 +962,12 @@ document.getElementById('btn-enter')?.addEventListener('click', () => enterLobby
 
 document.getElementById('btn-auth-back')?.addEventListener('click', () => showScreen('title'));
 
-document.getElementById('btn-lounge-entry')?.addEventListener('click', () => openLounge());
-document.getElementById('btn-lounge-back')?.addEventListener('click', () => {
-  stopLounge();
+document.getElementById('btn-blackjack-back')?.addEventListener('click', () => {
+  stopBlackjack();
+  showScreen('menu');
+});
+document.getElementById('btn-starfall-back')?.addEventListener('click', () => {
+  stopStarfall();
   showScreen('menu');
 });
 document.getElementById('btn-header-auth')?.addEventListener('click', () => {

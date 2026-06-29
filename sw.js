@@ -1,4 +1,4 @@
-const CACHE = 'mt-poker-v36';
+const CACHE = 'mt-poker-v37';
 const SHELL = [
   '/',
   '/index.html',
@@ -8,17 +8,15 @@ const SHELL = [
   '/css/game-scene.css',
   '/css/celebration.css',
   '/css/gate.css',
-  '/css/club.css',
+  '/css/blackjack.css',
+  '/css/starfall.css',
   '/assets/dealer-hostess.jpg',
   '/js/gate.js',
 
-  '/js/lounge.js',
-  '/js/club-rooms.js',
-  '/js/club-avatars.js',
-  '/js/club-engine.js',
-  '/js/club-multiplayer.js',
-  '/js/club-video.js',
-  '/js/club-management.js',
+  '/js/blackjack.js',
+  '/js/blackjack-ui.js',
+  '/js/starfall.js',
+  '/js/starfall-ui.js',
   '/js/club-webrtc.js',
   '/js/club-voice.js',
   '/js/club-ownership.js',

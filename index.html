@@ -17,10 +17,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=28">
-  <link rel="stylesheet" href="/css/roulette.css?v=28">
-  <link rel="stylesheet" href="/css/game-scene.css?v=28">
-  <link rel="stylesheet" href="/css/celebration.css?v=28">
+  <link rel="stylesheet" href="/css/style.css?v=29">
+  <link rel="stylesheet" href="/css/roulette.css?v=29">
+  <link rel="stylesheet" href="/css/game-scene.css?v=29">
+  <link rel="stylesheet" href="/css/celebration.css?v=29">
+  <link rel="stylesheet" href="/css/gate.css?v=29">
 </head>
 <body>
   <div id="install-hint" class="install-hint" hidden>
@@ -43,6 +44,7 @@
             <span class="name-mirage">MIRAGE</span>
           </h1>
           <p class="casino-tagline">Where legends deal &amp; the reels never sleep</p>
+          <p class="cover-18">18+ only · Age verification required</p>
           <div class="cover-pills">
             <span class="cover-pill">Poker</span>
             <span class="cover-pill">Pokiers</span>
@@ -63,15 +65,46 @@
       </footer>
     </section>
 
+    <!-- AUTH (login / signup required) -->
+    <section id="auth-screen" class="screen">
+      <div class="auth-bg" aria-hidden="true"></div>
+      <div class="auth-wrap">
+        <div class="auth-brand">
+          <p class="eco-tag">MT ECOSYSTEM</p>
+          <h1>NOVA MIRAGE</h1>
+          <p>Sign in to play poker, pokiers &amp; casino floor games</p>
+        </div>
+        <div class="auth-card">
+          <div class="auth-tabs">
+            <button type="button" class="auth-tab active" data-auth-tab="login">Log In</button>
+            <button type="button" class="auth-tab" data-auth-tab="signup">Sign Up</button>
+          </div>
+          <div class="auth-panel active" id="auth-panel-login">
+            <h2>Welcome back</h2>
+            <p>Log in with your account to access the casino floor.</p>
+            <div class="auth-providers" id="auth-providers-login"></div>
+          </div>
+          <div class="auth-panel" id="auth-panel-signup" hidden>
+            <h2>Create your account</h2>
+            <p>Free to join — connect Discord, Telegram, Gmail or Facebook.</p>
+            <div class="auth-providers" id="auth-providers-signup"></div>
+          </div>
+          <p class="auth-skip"><button type="button" id="btn-auth-back">← Back to cover</button></p>
+        </div>
+        <p class="auth-18-note">18+ only · Play responsibly · Entertainment purposes</p>
+      </div>
+    </section>
+
     <!-- MAIN MENU -->
     <section id="menu-screen" class="screen">
-      <header class="menu-header">
+      <header class="menu-header menu-header-premium">
         <button type="button" class="btn-ghost" id="btn-menu-back">←</button>
         <div class="menu-header-center">
           <span class="eco-pill">NOVA MIRAGE</span>
           <h2>Casino Lobby</h2>
         </div>
         <div class="menu-header-actions">
+          <button type="button" class="btn-auth-header" id="btn-header-auth">Log In</button>
           <div class="header-profile" title="Your profile">
             <div class="header-profile-avatar" id="menu-player-avatar"></div>
             <span class="header-profile-name" id="menu-player-name">Player1</span>
@@ -110,6 +143,23 @@
       </div>
 
       <p class="lobby-toast" id="lobby-toast" hidden></p>
+
+      <div class="lobby-hero">
+        <h3>Welcome to the floor</h3>
+        <p>Poker, Pokiers &amp; live casino games — same wallet as Lucky Reels</p>
+        <div class="lobby-hero-tags">
+          <span class="lobby-hero-tag live">● LIVE NOW</span>
+          <span class="lobby-hero-tag">18+ ONLY</span>
+          <span class="lobby-hero-tag">$MT ECOSYSTEM</span>
+        </div>
+      </div>
+
+      <div class="lobby-categories" id="lobby-categories">
+        <button type="button" class="lobby-cat active" data-cat="all">All Games</button>
+        <button type="button" class="lobby-cat" data-cat="poker">Poker</button>
+        <button type="button" class="lobby-cat" data-cat="pokiers">Pokiers</button>
+        <button type="button" class="lobby-cat" data-cat="floor">Live Casino</button>
+      </div>
 
       <div class="menu-scroll">
         <div id="menu-sections"></div>
@@ -386,16 +436,27 @@
           <div class="rl-history-track" id="roulette-history"></div>
         </div>
 
+        <div class="rl-mobile-tabs" id="rl-mobile-tabs">
+          <button type="button" class="rl-mobile-tab active" data-rl-tab="bets">Place Bets</button>
+          <button type="button" class="rl-mobile-tab" data-rl-tab="wheel">Live Wheel</button>
+        </div>
+
         <div class="rl-main">
-          <div class="rl-wheel-zone">
-            <div class="rl-wheel-frame" id="roulette-wheel-wrap"></div>
-            <div class="rl-result-line">
-              <div class="rl-result" id="roulette-result"></div>
-              <p class="rl-msg" id="roulette-message">Place your bets</p>
+          <div class="rl-stage" id="rl-stage">
+            <div class="rl-dealer" aria-hidden="true">
+              <img src="/assets/dealer-hostess.jpg" alt="" loading="eager" decoding="async">
+              <div class="rl-dealer-glow"></div>
+            </div>
+            <div class="rl-wheel-zone">
+              <div class="rl-wheel-frame" id="roulette-wheel-wrap"></div>
+              <div class="rl-result-line">
+                <div class="rl-result" id="roulette-result"></div>
+                <p class="rl-msg" id="roulette-message">Place your bets</p>
+              </div>
             </div>
           </div>
 
-          <div class="rl-mat-scroll">
+          <div class="rl-mat-scroll" id="rl-mat-scroll">
             <div class="rl-mat" id="roulette-mat"></div>
           </div>
         </div>
@@ -466,7 +527,23 @@
 
   <div id="celebration-layer" class="celebration-layer" aria-hidden="true" hidden></div>
 
-  <script type="module" src="/js/main.js?v=28"></script>
+  <div id="age-gate-modal" class="age-gate-modal" hidden>
+    <div class="age-gate-backdrop"></div>
+    <div class="age-gate-card">
+      <span class="age-badge">18+</span>
+      <h2>Age Verification Required</h2>
+      <p>Nova Mirage is for adults only. You must be <strong>18 years or older</strong> to enter and play. By continuing you confirm you meet the legal age requirement in your jurisdiction.</p>
+      <label class="age-field">
+        <span>Year of birth</span>
+        <input type="number" id="age-birth-year" inputmode="numeric" min="1900" max="2010" placeholder="e.g. 1995" autocomplete="bday-year">
+      </label>
+      <p class="age-gate-error" id="age-gate-error" hidden></p>
+      <button type="button" class="btn-play" id="btn-age-confirm">I am 18+ — Enter Casino</button>
+      <p class="age-legal">Gambling can be addictive. Play responsibly. Free chips are play money only.</p>
+    </div>
+  </div>
+
+  <script type="module" src="/js/main.js?v=29"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

@@ -1,28 +1,29 @@
-import { PokerGame } from './game.js?v=28';
-import { PokerUI } from './ui.js?v=28';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=28';
-import { artForGame } from './game-art.js?v=28';
-import { applyGameScene } from './game-scene.js?v=28';
-import { RouletteUI } from './roulette-ui.js?v=28';
-import { casinoSound, unlockAudio } from './sounds.js?v=28';
-import { celebrateWin, winTier } from './celebration.js?v=28';
+import { PokerGame } from './game.js?v=29';
+import { PokerUI } from './ui.js?v=29';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=29';
+import { artForGame } from './game-art.js?v=29';
+import { applyGameScene } from './game-scene.js?v=29';
+import { RouletteUI } from './roulette-ui.js?v=29';
+import { casinoSound, unlockAudio } from './sounds.js?v=29';
+import { celebrateWin, winTier } from './celebration.js?v=29';
+import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=29';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress, adjustFreeChips
-} from './wallet.js?v=28';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=28';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=28';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=28';
+} from './wallet.js?v=29';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=29';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=29';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=29';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=28';
-import { renderAvatarHTML } from './avatar.js?v=28';
+} from './profile.js?v=29';
+import { renderAvatarHTML } from './avatar.js?v=29';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=28';
+} from './auth.js?v=29';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -202,6 +203,7 @@ function renderGameCard(game, sectionId) {
   const imgSrc = art.image || '';
 
   const playAction = () => {
+    if (!requireCasinoAccess()) return;
     if (mode) selectMode(mode);
     else if (game.external) openLuckyReels();
     else if (game.game === 'roulette') openRoulette();
@@ -292,6 +294,7 @@ function bindCarousel(wrap, carousel) {
 }
 
 function openLuckyReels() {
+  if (!requireCasinoAccess()) return;
   applyGameScene('reels-scene', 'lucky-reels');
   const frame = document.getElementById('reels-frame');
   if (frame) frame.src = LUCKY_REELS_URL;
@@ -300,6 +303,7 @@ function openLuckyReels() {
 }
 
 function openRoulette() {
+  if (!requireCasinoAccess()) return;
   applyGameScene('roulette-scene', 'roulette');
   unlockAudio();
   stopRoulette();
@@ -380,6 +384,7 @@ function renderRooms() {
 }
 
 function selectMode(mode, roomName = '') {
+  if (!requireCasinoAccess()) return;
   if (mode.currency === 'mt' && !wallet.walletConnected) {
     toast('Connect wallet first — same as Lucky Reels');
     openModal('wallet-modal');
@@ -482,6 +487,119 @@ function updateMenuPlayerBar() {
     );
   }
   if (nameEl) nameEl.textContent = name;
+  updateAuthHeader();
+}
+
+function updateAuthHeader() {
+  const btn = document.getElementById('btn-header-auth');
+  if (!btn) return;
+  if (isSignedIn(profile)) {
+    btn.textContent = getAuthLabel(profile);
+    btn.classList.add('signed-in');
+  } else {
+    btn.textContent = 'Log In';
+    btn.classList.remove('signed-in');
+  }
+}
+
+function requireCasinoAccess() {
+  if (!isAgeVerified()) {
+    openAgeGate();
+    return false;
+  }
+  if (!isSignedIn(profile)) {
+    toast('Log in or sign up to play');
+    buildAuthProviders();
+    showScreen('auth');
+    return false;
+  }
+  return true;
+}
+
+async function enterLobby() {
+  unlockAudio();
+  casinoSound.lobby();
+  try {
+    const p = await handleAuthCallback((prof) => onAuthSuccess(prof, 'Telegram'));
+    if (p) profile = p;
+    else profile = loadProfile();
+    syncProfileToWallet();
+  } catch (err) {
+    toast(err.message);
+  }
+  if (!isAgeVerified()) {
+    openAgeGate();
+    return;
+  }
+  if (!isSignedIn(profile)) {
+    buildAuthProviders();
+    showScreen('auth');
+    return;
+  }
+  await updateWalletUI();
+  renderMenu();
+  renderRooms();
+  showScreen('menu');
+}
+
+const AUTH_PROVIDER_BTNS = `
+  <button type="button" class="auth-screen-btn discord" data-auth-provider="discord"><span>💬</span> Discord</button>
+  <button type="button" class="auth-screen-btn telegram" data-auth-provider="telegram"><span>✈️</span> Telegram</button>
+  <button type="button" class="auth-screen-btn google" data-auth-provider="google"><span>📧</span> Gmail</button>
+  <button type="button" class="auth-screen-btn facebook" data-auth-provider="facebook"><span>📘</span> Facebook</button>
+`;
+
+function buildAuthProviders() {
+  document.getElementById('auth-providers-login')?.replaceChildren();
+  document.getElementById('auth-providers-signup')?.replaceChildren();
+  ['auth-providers-login', 'auth-providers-signup'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = AUTH_PROVIDER_BTNS;
+  });
+}
+
+function bindAuthScreen() {
+  document.querySelectorAll('.auth-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const which = tab.dataset.authTab;
+      document.querySelectorAll('.auth-tab').forEach((t) => t.classList.toggle('active', t === tab));
+      document.getElementById('auth-panel-login').hidden = which !== 'login';
+      document.getElementById('auth-panel-signup').hidden = which !== 'signup';
+    });
+  });
+
+  document.getElementById('auth-screen')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-auth-provider]');
+    if (!btn) return;
+    handleAuthProvider(btn.dataset.authProvider);
+  });
+}
+
+function handleAuthProvider(provider) {
+  const onOk = (p, label) => onAuthSuccess(p, label);
+  const onErr = (err) => toast(err.message);
+  if (provider === 'discord') signInDiscord((p) => onOk(p, 'Discord'), onErr);
+  else if (provider === 'telegram') {
+    signInTelegram((p) => onOk(p, 'Telegram'), (err) => {
+      if (err.message?.includes('Open @')) toast('Telegram opened — tap Start in the bot, then finish sign-in');
+      else toast(err.message);
+    });
+  }
+  else if (provider === 'google') signInGoogle((p) => onOk(p, 'Gmail'), onErr);
+  else if (provider === 'facebook') signInFacebook((p) => onOk(p, 'Facebook'), onErr);
+}
+
+function bindLobbyCategories() {
+  document.querySelectorAll('.lobby-cat').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.lobby-cat').forEach((b) => b.classList.toggle('active', b === btn));
+      const cat = btn.dataset.cat;
+      document.querySelectorAll('.menu-section').forEach((sec) => {
+        if (cat === 'all') sec.classList.remove('hidden-cat');
+        else sec.classList.toggle('hidden-cat', !sec.classList.contains(`menu-section-${cat}`));
+      });
+    });
+  });
 }
 
 function switchSettingsTab(tab) {
@@ -525,7 +643,11 @@ function onAuthSuccess(p, label) {
   profile = p;
   syncProfileToWallet();
   renderProfileScreen();
+  updateAuthHeader();
   toast(`Signed in with ${label || getAuthLabel(p)}`);
+  if (document.getElementById('auth-screen')?.classList.contains('active')) {
+    enterLobby();
+  }
 }
 
 function openSettingsScreen(tab = 'account') {
@@ -762,21 +884,16 @@ document.getElementById('preview-play')?.addEventListener('click', () => {
 
 document.addEventListener('click', () => unlockAudio(), { once: true, capture: true });
 
-document.getElementById('btn-enter')?.addEventListener('click', async () => {
-  unlockAudio();
-  casinoSound.lobby();
-  try {
-    const p = await handleAuthCallback((prof) => onAuthSuccess(prof, 'Telegram'));
-    if (p) profile = p;
-    else profile = loadProfile();
-    syncProfileToWallet();
-  } catch (err) {
-    toast(err.message);
+document.getElementById('btn-enter')?.addEventListener('click', () => enterLobby());
+
+document.getElementById('btn-auth-back')?.addEventListener('click', () => showScreen('title'));
+
+document.getElementById('btn-header-auth')?.addEventListener('click', () => {
+  if (isSignedIn(profile)) openSettingsScreen('account');
+  else {
+    buildAuthProviders();
+    showScreen('auth');
   }
-  await updateWalletUI();
-  renderMenu();
-  renderRooms();
-  showScreen('menu');
 });
 
 document.getElementById('btn-settings')?.addEventListener('click', () => openSettingsScreen('account'));
@@ -936,7 +1053,12 @@ document.getElementById('btn-join-room')?.addEventListener('click', () => {
 
 document.getElementById('btn-multi-back')?.addEventListener('click', () => showScreen('menu'));
 
+bindAgeGate(() => enterLobby());
+bindAuthScreen();
+buildAuthProviders();
+bindLobbyCategories();
 setupInstallHint();
+if (!isAgeVerified()) openAgeGate();
 bootAuthProviders(
   (p) => { profile = p; syncProfileToWallet(); updateWalletUI(); },
   (err) => console.warn('Auth:', err.message)

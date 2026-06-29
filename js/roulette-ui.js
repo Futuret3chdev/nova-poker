@@ -3,8 +3,8 @@ import {
   spinResult, resolveBets, betLabel, isRed
 } from './roulette.js';
 import { RouletteWheelCanvas } from './roulette-wheel.js';
-import { casinoSound } from './sounds.js?v=28';
-import { celebrateWin, winTier } from './celebration.js?v=28';
+import { casinoSound } from './sounds.js?v=29';
+import { celebrateWin, winTier } from './celebration.js?v=29';
 
 export class RouletteUI {
   constructor({ onBalanceChange, getBalance }) {
@@ -22,8 +22,14 @@ export class RouletteUI {
     this.buildTable();
     this.buildChips();
     this.bind();
+    this.bindMobileTabs();
     this.renderBalance();
     this.updateSummary();
+    this._onResize = () => this.fitMatScale();
+    this.fitMatScale();
+    window.addEventListener('resize', this._onResize);
+    this._resizeObs = new ResizeObserver(() => this.fitMatScale());
+    if (this.els.matScroll) this._resizeObs.observe(this.els.matScroll);
   }
 
   cacheEls() {
@@ -37,8 +43,51 @@ export class RouletteUI {
       summary: document.getElementById('roulette-bets-summary'),
       btnSpin: document.getElementById('btn-roulette-spin'),
       btnClear: document.getElementById('btn-roulette-clear'),
-      message: document.getElementById('roulette-message')
+      message: document.getElementById('roulette-message'),
+      matScroll: document.getElementById('rl-mat-scroll'),
+      cabinet: document.querySelector('.rl-cabinet')
     };
+  }
+
+  bindMobileTabs() {
+    const tabs = document.querySelectorAll('.rl-mobile-tab');
+    if (!tabs.length) return;
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const view = tab.dataset.rlTab || 'bets';
+        this.els.cabinet?.setAttribute('data-rl-view', view);
+        tabs.forEach((t) => t.classList.toggle('active', t === tab));
+        if (view === 'wheel') {
+          requestAnimationFrame(() => this.wheelRenderer?.resize());
+        } else {
+          this.fitMatScale();
+        }
+      });
+    });
+    this.els.cabinet?.setAttribute('data-rl-view', 'bets');
+  }
+
+  fitMatScale() {
+    const scroll = this.els.matScroll;
+    const mat = this.els.mat;
+    if (!scroll || !mat || window.innerWidth >= 600) {
+      if (mat) {
+        mat.style.transform = '';
+        mat.style.marginBottom = '';
+      }
+      return;
+    }
+    mat.style.transform = '';
+    mat.style.marginBottom = '';
+    const pad = 16;
+    const avail = scroll.clientWidth - pad;
+    const natural = mat.scrollWidth;
+    if (natural > avail && avail > 0) {
+      const scale = avail / natural;
+      mat.style.transform = `scale(${scale})`;
+      const h = mat.offsetHeight * scale;
+      mat.style.marginBottom = `${-(mat.offsetHeight - h)}px`;
+    }
   }
 
   betKey(type, value) {
@@ -287,6 +336,8 @@ export class RouletteUI {
   }
 
   destroy() {
+    this._resizeObs?.disconnect();
+    window.removeEventListener('resize', this._onResize);
     this.stopTicks();
     this.clearBets(false);
   }

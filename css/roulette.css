@@ -98,6 +98,99 @@
 .rl-hist-pill.b { background: #111; color: #fff; }
 .rl-hist-pill.g { background: #1b7a3d; color: #fff; }
 
+/* Live dealer + wheel stage (BetGames-style) */
+.rl-stage {
+  flex: 0 0 auto;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 8px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, transparent 70%);
+}
+
+.rl-dealer {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(72vw, 280px);
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 88%, transparent 100%);
+}
+.rl-dealer img {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  filter: saturate(1.05) contrast(1.02);
+}
+.rl-dealer-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 80%, rgba(255, 193, 7, 0.15), transparent);
+}
+
+.rl-wheel-zone {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 0 2px;
+  width: 100%;
+}
+
+.rl-wheel-frame {
+  width: min(42vw, 200px);
+  height: min(42vw, 200px);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow:
+    0 0 40px rgba(255, 193, 7, 0.3),
+    0 0 60px rgba(124, 77, 255, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Mobile: Wheel vs Bets tabs */
+.rl-mobile-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.rl-mobile-tab {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--muted);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+.rl-mobile-tab.active {
+  border-color: rgba(255, 193, 7, 0.45);
+  background: rgba(255, 193, 7, 0.12);
+  color: var(--gold);
+}
+
 /* Main play area */
 .rl-main {
   flex: 1;
@@ -107,25 +200,21 @@
   overflow: hidden;
 }
 
-.rl-wheel-zone {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 6px 8px 2px;
+/* Mobile view modes: bets (default) vs full wheel */
+.rl-cabinet[data-rl-view="wheel"] .rl-mat-scroll {
+  display: none;
 }
-
-.rl-wheel-frame {
-  width: min(90vw, 360px);
-  height: min(90vw, 360px);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  box-shadow:
-    0 0 50px rgba(255, 193, 7, 0.25),
-    0 0 80px rgba(124, 77, 255, 0.15);
+.rl-cabinet[data-rl-view="wheel"] .rl-stage {
+  flex: 1;
+  min-height: 45vh;
+  max-height: none;
+}
+.rl-cabinet[data-rl-view="wheel"] .rl-dealer {
+  width: min(65vw, 320px);
+}
+.rl-cabinet[data-rl-view="wheel"] .rl-wheel-frame {
+  width: min(68vw, 300px);
+  height: min(68vw, 300px);
 }
 
 .rl-wheel-canvas {
@@ -180,13 +269,19 @@
 .rl-mat-scroll {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 6px 8px;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: 6px 8px 10px;
 }
 
 .rl-mat {
-  min-width: min-content;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  transform-origin: top center;
 }
 
 .rl-mat-inner {
@@ -417,19 +512,65 @@
   transform: scale(0.98);
 }
 
+/* Lock roulette screen — no layout shift from background */
+#roulette-screen {
+  touch-action: manipulation;
+  overflow: hidden;
+}
+#roulette-screen .game-scene-img {
+  animation: none;
+  transform: scale(1.04);
+}
+#roulette-screen .rl-cabinet {
+  height: 100%;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+@media (max-width: 599px) {
+  .rl-stage {
+    min-height: 130px;
+    max-height: 150px;
+  }
+  .rl-dealer {
+    width: min(55vw, 200px);
+  }
+  .rl-wheel-frame {
+    width: min(36vw, 140px);
+    height: min(36vw, 140px);
+  }
+  .rl-result-line {
+    min-height: 28px;
+  }
+  .rl-msg {
+    font-size: 0.65rem;
+  }
+}
+
 @media (min-width: 600px) {
+  .rl-mobile-tabs { display: none; }
   .rl-main {
     flex-direction: row;
   }
-  .rl-wheel-zone {
+  .rl-stage {
     flex: 0 0 42%;
+    min-height: 200px;
+    padding-top: 8px;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .rl-dealer {
+    width: min(85%, 340px);
+    height: 75%;
+  }
+  .rl-wheel-zone {
     justify-content: center;
   }
   .rl-mat-scroll {
     flex: 1;
   }
   .rl-wheel-frame {
-    width: min(36vw, 360px);
-    height: min(36vw, 360px);
+    width: min(32vw, 280px);
+    height: min(32vw, 280px);
   }
 }

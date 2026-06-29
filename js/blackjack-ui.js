@@ -6,8 +6,8 @@ import {
 } from './blackjack.js';
 import { cardLabel, cardColor } from './deck.js';
 import { casinoSound } from './sounds.js';
-import { celebrateWin, winTier } from './celebration.js?v=40';
-import { spawnAmbient, burstAt, showBanner } from './game-fx.js?v=40';
+import { celebrateWin, winTier } from './celebration.js?v=41';
+import { spawnAmbient, burstAt, showBanner } from './game-fx.js?v=41';
 
 const CHIPS = [10, 25, 50, 100, 500];
 const SUIT_SYM = { h: '♥', d: '♦', c: '♣', s: '♠' };

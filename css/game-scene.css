@@ -2,10 +2,22 @@
 #game-screen,
 #roulette-screen,
 #setup-screen,
-#reels-screen {
+#reels-screen,
+#blackjack-screen,
+#starfall-screen {
   position: relative;
   overflow: hidden;
   flex-direction: column;
+}
+
+#blackjack-screen .game-scene-content,
+#starfall-screen .game-scene-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 #reels-screen .game-scene-content {

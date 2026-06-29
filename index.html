@@ -17,14 +17,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=40">
-  <link rel="stylesheet" href="/css/roulette.css?v=40">
-  <link rel="stylesheet" href="/css/game-scene.css?v=40">
-  <link rel="stylesheet" href="/css/celebration.css?v=40">
-  <link rel="stylesheet" href="/css/gate.css?v=40">
-  <link rel="stylesheet" href="/css/game-fx.css?v=40">
-  <link rel="stylesheet" href="/css/blackjack.css?v=40">
-  <link rel="stylesheet" href="/css/starfall.css?v=40">
+  <link rel="stylesheet" href="/css/style.css?v=41">
+  <link rel="stylesheet" href="/css/roulette.css?v=41">
+  <link rel="stylesheet" href="/css/game-scene.css?v=41">
+  <link rel="stylesheet" href="/css/celebration.css?v=41">
+  <link rel="stylesheet" href="/css/gate.css?v=41">
+  <link rel="stylesheet" href="/css/game-fx.css?v=41">
+  <link rel="stylesheet" href="/css/blackjack.css?v=41">
+  <link rel="stylesheet" href="/css/starfall.css?v=41">
 </head>
 <body>
   <div id="age-gate-frame" class="age-gate-frame" aria-hidden="true">
@@ -441,16 +441,16 @@
         <div class="bj-table-wrap" id="bj-table-wrap">
           <div class="bj-rail">
             <div class="bj-spotlight" aria-hidden="true"></div>
+            <div class="bj-dealer-host" aria-hidden="true">
+              <img src="/assets/dealer-hostess.jpg" alt="" loading="eager">
+              <div class="bj-dealer-glow"></div>
+            </div>
             <div class="bj-shoe" id="bj-shoe" aria-hidden="true">
               <div class="bj-shoe-stack"></div>
               <span class="bj-shoe-label">SHOE</span>
             </div>
             <div class="bj-table" id="bj-table" data-phase="bet">
               <div class="bj-felt">
-                <div class="bj-dealer-host" aria-hidden="true">
-                  <img src="/assets/dealer-hostess.jpg" alt="" loading="eager">
-                  <div class="bj-dealer-glow"></div>
-                </div>
                 <div class="bj-felt-markings" aria-hidden="true">
                   <span class="bj-mark-center">21</span>
                   <span class="bj-mark-insurance">INSURANCE</span>
@@ -663,7 +663,7 @@
 
   <div id="celebration-layer" class="celebration-layer" aria-hidden="true" hidden></div>
 
-  <script type="module" src="/js/main.js?v=40"></script>
+  <script type="module" src="/js/main.js?v=41"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

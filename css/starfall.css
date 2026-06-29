@@ -11,6 +11,9 @@
   flex-direction: column;
   min-height: 0;
   padding: 0 10px 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sf-top {
@@ -54,13 +57,14 @@
 .sf-stats strong { color: #69f0ae; }
 
 .sf-machine {
-  flex: 1;
+  flex: 0 0 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
+  padding: 4px 0 8px;
 }
 
 .sf-aurora {
@@ -577,3 +581,22 @@
 .sf-spin-btn:not(:disabled):active { transform: scale(0.96); }
 .sf-spin-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .sf-last-win { font-size: 0.68rem; color: #69f0ae; }
+
+/* Desktop / short viewports — keep full cabinet visible (scroll or compact) */
+@media (min-width: 600px) and (max-height: 900px) {
+  .sf-jackpot-ticker {
+    padding: 5px 10px;
+    margin-bottom: 6px;
+  }
+  .sf-ticker-amt { font-size: 0.95rem; }
+  .sf-marquee-wrap { margin-bottom: 6px; }
+  .sf-paytable { margin-top: 8px; gap: 4px 8px; }
+  .sf-footer { gap: 8px; }
+  .sf-spin-btn { padding: 14px 24px; font-size: 1rem; }
+}
+
+@media (min-width: 900px) {
+  #starfall-screen .sf-frame {
+    max-width: min(100%, 460px);
+  }
+}

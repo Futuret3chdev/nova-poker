@@ -197,11 +197,6 @@ html[data-view-mode="fpv"] .game-card-visual {
   transform: rotateX(8deg);
   transform-origin: center bottom;
 }
-html[data-view-mode="fpv"] .lobby-hero {
-  background:
-    linear-gradient(135deg, rgba(124, 77, 255, 0.4), rgba(0, 0, 0, 0.6)),
-    url('/assets/games/roulette.jpg') center / cover;
-}
 html[data-view-mode="fpv"] .fpv-banner {
   display: flex;
 }
@@ -373,59 +368,6 @@ html[data-view-mode="fpv"] .fpv-banner {
   font-size: 0.68rem;
   color: rgba(139, 148, 158, 0.9);
 }
-
-/* ── Premium lobby chrome ── */
-.lobby-hero {
-  margin: 0 12px 14px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background:
-    linear-gradient(120deg, rgba(124, 77, 255, 0.35) 0%, rgba(255, 193, 7, 0.15) 50%, rgba(229, 57, 53, 0.2) 100%),
-    rgba(13, 17, 23, 0.9);
-  border: 1px solid rgba(255, 193, 7, 0.2);
-  position: relative;
-  overflow: hidden;
-}
-.lobby-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.06) 50%, transparent 60%);
-  animation: lobby-shine 4s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes lobby-shine {
-  0%, 100% { transform: translateX(-100%); }
-  50% { transform: translateX(100%); }
-}
-.lobby-hero h3 {
-  font-family: 'Oswald', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.06em;
-  color: #fff;
-  margin-bottom: 4px;
-}
-.lobby-hero p {
-  font-size: 0.72rem;
-  color: rgba(240, 243, 246, 0.85);
-  line-height: 1.4;
-}
-.lobby-hero-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-.lobby-hero-tag {
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-.lobby-hero-tag.live { color: #69f0ae; border-color: rgba(105, 240, 174, 0.4); }
 
 .lobby-categories {
   display: flex;

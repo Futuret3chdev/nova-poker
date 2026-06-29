@@ -1,31 +1,31 @@
-import { PokerGame } from './game.js?v=30';
-import { PokerUI } from './ui.js?v=30';
-import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=30';
-import { artForGame } from './game-art.js?v=30';
-import { applyGameScene } from './game-scene.js?v=30';
-import { RouletteUI } from './roulette-ui.js?v=30';
-import { casinoSound, unlockAudio } from './sounds.js?v=30';
-import { celebrateWin, winTier } from './celebration.js?v=30';
-import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=30';
-import { bootViewMode, toggleViewMode, updateViewModeButton } from './fpv.js?v=30';
-import { mountLoungePreview } from './lounge.js?v=30';
+import { PokerGame } from './game.js?v=31';
+import { PokerUI } from './ui.js?v=31';
+import { TABLE_MODES, CASINO_GAME_SECTIONS, MULTIPLAYER_ROOMS } from './modes.js?v=31';
+import { artForGame } from './game-art.js?v=31';
+import { applyGameScene } from './game-scene.js?v=31';
+import { RouletteUI } from './roulette-ui.js?v=31';
+import { casinoSound, unlockAudio } from './sounds.js?v=31';
+import { celebrateWin, winTier } from './celebration.js?v=31';
+import { isAgeVerified, openAgeGate, bindAgeGate } from './gate.js?v=31';
+import { bootViewMode, toggleViewMode, updateViewModeButton } from './fpv.js?v=31';
+import { mountLoungePreview } from './lounge.js?v=31';
 import {
   loadWallet, saveWallet, connectWalletProvider, disconnectWallet,
   claimDailyBonus, canAffordBuyIn, deductBuyIn, creditWinnings,
   refreshMtBalance, shortAddress, adjustFreeChips
-} from './wallet.js?v=30';
-import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=30';
-import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=30';
-import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=30';
+} from './wallet.js?v=31';
+import { generateRoomCode, simulateMatchmaking } from './multiplayer.js?v=31';
+import { detectWallets, sendMTToTreasury } from './solana-wallet.js?v=31';
+import { MEMETORRENT, LUCKY_REELS_URL } from './config.js?v=31';
 import {
   loadProfile, updateProfile, uploadAvatarFile, removeAvatar,
   CHARACTER_PRESETS, getDisplayName, isSignedIn
-} from './profile.js?v=30';
-import { renderAvatarHTML } from './avatar.js?v=30';
+} from './profile.js?v=31';
+import { renderAvatarHTML } from './avatar.js?v=31';
 import {
   handleAuthCallback, bootAuthProviders, signInDiscord, signInFacebook,
   signInGoogle, signInTelegram, renderGoogleButton, signOut, getAuthLabel
-} from './auth.js?v=30';
+} from './auth.js?v=31';
 
 function isStandaloneApp() {
   return window.matchMedia('(display-mode: standalone)').matches
@@ -138,13 +138,36 @@ async function updateWalletUI() {
   }
 }
 
-function showLobbyToast(msg) {
+const WELCOME_KEY = 'nm-welcome-dismissed';
+
+function showLobbyToast(msg, ms = 2800) {
   const el = document.getElementById('lobby-toast');
   if (!el) return;
+  el.classList.remove('welcome');
   el.textContent = msg;
   el.hidden = false;
   clearTimeout(showLobbyToast._t);
-  showLobbyToast._t = setTimeout(() => { el.hidden = true; }, 2800);
+  showLobbyToast._t = setTimeout(() => { el.hidden = true; }, ms);
+}
+
+function maybeShowWelcome() {
+  if (localStorage.getItem(WELCOME_KEY) === '1') return;
+  const el = document.getElementById('lobby-toast');
+  if (!el) return;
+
+  const dismiss = () => {
+    el.hidden = true;
+    el.classList.remove('welcome');
+    el.innerHTML = '';
+    localStorage.setItem(WELCOME_KEY, '1');
+    clearTimeout(maybeShowWelcome._t);
+  };
+
+  el.classList.add('welcome');
+  el.innerHTML = '<span class="lobby-toast-text">Poker, Pokiers &amp; live casino — same wallet as Lucky Reels · 18+</span><button type="button" class="lobby-toast-close" aria-label="Dismiss">✕</button>';
+  el.hidden = false;
+  el.querySelector('.lobby-toast-close')?.addEventListener('click', dismiss);
+  maybeShowWelcome._t = setTimeout(dismiss, 5500);
 }
 
 function showComingSoonToast(title) {
@@ -556,6 +579,7 @@ async function enterLobby() {
   renderMenu();
   renderRooms();
   showScreen('menu');
+  maybeShowWelcome();
 }
 
 const AUTH_PROVIDER_BTNS = `

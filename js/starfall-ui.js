@@ -3,12 +3,12 @@
 import {
   SYMBOLS, BET_STEPS, LINES, PAYTABLE, spinGridTease, evaluate
 } from './starfall.js';
-import { casinoSound, unlockAudio } from './sounds.js?v=41';
-import { celebrateWin, winTier } from './celebration.js?v=41';
-import { spawnAmbient, burstAt, chaseLights } from './game-fx.js?v=41';
+import { casinoSound, unlockAudio } from './sounds.js?v=42';
+import { celebrateWin, winTier } from './celebration.js?v=42';
+import { spawnAmbient, burstAt, chaseLights } from './game-fx.js?v=42';
 
 const ROW_H = 88;
-const REEL_PAD = 6;
+const REEL_PAD = 10;
 
 export class StarfallUI {
   constructor({ getBalance, onBalanceChange }) {
@@ -216,20 +216,24 @@ export class StarfallUI {
     }
 
     const promises = stops.map(({ reel, strip, offset, col }) => new Promise((resolve) => {
-      strip.classList.add('sf-spinning');
-      strip.style.transition = 'none';
-      strip.style.transform = 'translateY(0)';
-      void strip.offsetWidth;
-      const dur = 0.55 + col * 0.14 + Math.random() * 0.08;
-      strip.style.transition = `transform ${dur}s cubic-bezier(0.12, 0.8, 0.2, 1)`;
-      strip.style.transform = `translateY(-${offset}px)`;
+      const dur = 0.95 + col * 0.2 + Math.random() * 0.12;
+      const kickoff = col * 35;
+
       setTimeout(() => {
-        casinoSound.reelStop(col);
-        strip.classList.remove('sf-spinning');
-        reel.classList.add('sf-reel-stop');
-        setTimeout(() => reel.classList.remove('sf-reel-stop'), 160);
-        resolve();
-      }, dur * 1000 + 30);
+        strip.classList.add('sf-spinning');
+        strip.style.transition = 'none';
+        strip.style.transform = 'translateY(0)';
+        void strip.offsetWidth;
+        strip.style.transition = `transform ${dur}s cubic-bezier(0.12, 0.8, 0.2, 1)`;
+        strip.style.transform = `translateY(-${offset}px)`;
+        setTimeout(() => {
+          casinoSound.reelStop(col);
+          strip.classList.remove('sf-spinning');
+          reel.classList.add('sf-reel-stop');
+          setTimeout(() => reel.classList.remove('sf-reel-stop'), 180);
+          resolve();
+        }, dur * 1000 + 40);
+      }, kickoff);
     }));
 
     await Promise.all(promises);

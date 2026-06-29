@@ -173,7 +173,8 @@
   overflow: hidden;
   background: linear-gradient(180deg, #08081a 0%, #030308 100%);
   border: 3px solid rgba(255, 255, 255, 0.1);
-  height: 264px;
+  /* 3 × 88px rows + 6px reel padding — keeps all 3 lines fully visible */
+  height: 270px;
   box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
 }
 
@@ -299,8 +300,9 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   height: 100%;
-  gap: 3px;
+  gap: 2px;
   padding: 3px;
+  box-sizing: border-box;
   position: relative;
   z-index: 3;
 }
@@ -326,23 +328,35 @@
   position: absolute;
   left: 0;
   right: 0;
-  height: 10%;
+  height: 6%;
   z-index: 2;
   pointer-events: none;
+  transition: height 0.2s, opacity 0.2s;
 }
 .sf-reel::before {
   top: 0;
-  background: linear-gradient(180deg, rgba(5, 5, 16, 0.55) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(5, 5, 16, 0.45) 0%, transparent 100%);
 }
 .sf-reel::after {
   bottom: 0;
-  background: linear-gradient(0deg, rgba(5, 5, 16, 0.55) 0%, transparent 100%);
+  background: linear-gradient(0deg, rgba(5, 5, 16, 0.45) 0%, transparent 100%);
+}
+.sf-machine.sf-spinning .sf-reel::before,
+.sf-machine.sf-spinning .sf-reel::after {
+  height: 4%;
+  opacity: 0.35;
+}
+.sf-machine.sf-spinning .sf-grid-overlay {
+  opacity: 0.2;
 }
 
 .sf-strip { will-change: transform; }
 .sf-strip.sf-spinning .sf-gem {
-  filter: blur(2px) brightness(1.15);
-  transform: scaleY(1.08);
+  filter: blur(2.5px) brightness(1.2);
+  transform: scaleY(1.12);
+}
+.sf-strip.sf-spinning .sf-cell {
+  border-bottom-color: rgba(255, 193, 7, 0.06);
 }
 
 .sf-cell {

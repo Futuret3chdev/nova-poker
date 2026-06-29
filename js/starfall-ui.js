@@ -3,9 +3,9 @@
 import {
   SYMBOLS, BET_STEPS, LINES, PAYTABLE, spinGridTease, evaluate
 } from './starfall.js';
-import { casinoSound, unlockAudio } from './sounds.js?v=43';
-import { celebrateWin, winTier } from './celebration.js?v=43';
-import { spawnAmbient, burstAt, chaseLights } from './game-fx.js?v=43';
+import { casinoSound, unlockAudio } from './sounds.js?v=44';
+import { celebrateWin, winTier } from './celebration.js?v=44';
+import { spawnAmbient, burstAt, chaseLights } from './game-fx.js?v=44';
 
 const ROW_H = 88;
 const REEL_PAD = 8;

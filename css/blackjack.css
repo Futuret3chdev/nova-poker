@@ -10,12 +10,10 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 0 10px 12px;
+  padding: 0 10px 0;
   position: relative;
   z-index: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 
 .bj-top {
@@ -24,6 +22,7 @@
   gap: 10px;
   padding: 10px 4px;
   z-index: 2;
+  flex-shrink: 0;
 }
 .bj-back {
   border: none;
@@ -60,7 +59,7 @@
 .bj-bank strong { color: #69f0ae; }
 
 .bj-table-wrap {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   align-items: flex-start;
@@ -70,7 +69,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 6px 0 10px;
+  overscroll-behavior: contain;
+  padding: 4px 0 8px;
 }
 
 .bj-rail {
@@ -193,8 +193,8 @@
 .bj-felt {
   position: relative;
   border-radius: 140px / 72px;
-  min-height: 340px;
-  padding: 24px 16px 24px;
+  min-height: min(320px, 52vh);
+  padding: 20px 16px 36px;
   background:
     radial-gradient(ellipse 95% 85% at 50% 35%, rgba(56, 142, 60, 0.98) 0%, rgba(27, 94, 32, 1) 50%, rgba(13, 58, 18, 1) 100%);
   border: 4px solid rgba(255, 193, 7, 0.4);
@@ -246,9 +246,13 @@
 .bj-dealer-zone,
 .bj-player-zone {
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   position: relative;
   z-index: 2;
+}
+.bj-player-zone {
+  margin-bottom: 12px;
+  padding-bottom: 4px;
 }
 .bj-zone-label {
   font-size: 0.58rem;
@@ -465,11 +469,12 @@
 
 .bj-message {
   text-align: center;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--muted);
-  padding: 10px 14px;
-  min-height: 2.4em;
+  padding: 6px 14px;
+  min-height: 1.8em;
   z-index: 2;
+  flex-shrink: 0;
 }
 .bj-msg-win { color: #69f0ae; font-weight: 600; }
 .bj-msg-blackjack { color: var(--gold); font-weight: 700; text-shadow: 0 0 24px rgba(255, 193, 7, 0.6); }
@@ -478,9 +483,14 @@
 .bj-footer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 8px;
-  z-index: 2;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 0 max(10px, env(safe-area-inset-bottom));
+  z-index: 10;
+  background: linear-gradient(180deg, rgba(5, 3, 8, 0.72) 0%, rgba(5, 3, 8, 0.96) 35%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 193, 7, 0.12);
 }
 .bj-chip-tray {
   display: flex;
@@ -573,10 +583,23 @@
   50% { box-shadow: 0 0 20px rgba(105, 240, 174, 0.45); }
 }
 
+@media (max-height: 740px), (max-width: 420px) {
+  .bj-felt {
+    min-height: min(280px, 48vh);
+    padding: 16px 12px 28px;
+  }
+  .bj-cards { min-height: 88px; gap: 8px; }
+  .bj-table .bj-card { width: 58px; height: 80px; }
+  .bj-chip { width: 46px; height: 46px; font-size: 0.58rem; }
+  .bj-btn { padding: 10px 4px; font-size: 0.66rem; }
+  .bj-chip-tray { gap: 6px; }
+  .bj-footer { gap: 6px; }
+  .bj-message { padding: 4px 10px; min-height: 1.5em; font-size: 0.72rem; }
+}
+
 @media (min-width: 600px) and (max-height: 820px) {
-  .bj-felt { min-height: 300px; padding: 18px 14px 18px; }
+  .bj-felt { min-height: min(300px, 50vh); padding: 18px 14px 30px; }
   .bj-cards { min-height: 96px; gap: 8px; }
   .bj-table .bj-card { width: 60px; height: 84px; }
-  .bj-footer { gap: 8px; padding-top: 4px; }
   .bj-chip { width: 50px; height: 50px; }
 }

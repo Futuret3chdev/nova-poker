@@ -190,35 +190,7 @@
   flex-shrink: 0;
 }
 
-html[data-view-mode="fpv"] #menu-screen .menu-scroll {
-  perspective: 900px;
-}
-html[data-view-mode="fpv"] .game-card-visual {
-  transform: rotateX(8deg);
-  transform-origin: center bottom;
-}
-html[data-view-mode="fpv"] .fpv-banner {
-  display: flex;
-}
 
-.fpv-banner {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: rgba(124, 77, 255, 0.2);
-  border-bottom: 1px solid rgba(124, 77, 255, 0.35);
-  font-size: 0.68rem;
-  color: var(--mt-glow);
-  flex-shrink: 0;
-}
-
-.menu-tb-btn.fpv-on {
-  border-color: var(--mt-purple);
-  color: var(--mt-glow);
-  background: rgba(124, 77, 255, 0.2);
-}
 
 /* ── Auth screen (login / signup) ── */
 #auth-screen {

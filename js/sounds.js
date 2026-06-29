@@ -117,5 +117,31 @@ export const casinoSound = {
     unlockAudio();
     tone(392, 0.15, 'sine', 0.06);
     tone(523, 0.2, 'sine', 0.05, 0.08);
+  },
+
+  _clubTimer: null,
+
+  clubAmbience() {
+    unlockAudio();
+    casinoSound.clubAmbienceStop();
+    const beat = () => {
+      tone(80, 0.08, 'sine', 0.06);
+      tone(160, 0.06, 'triangle', 0.04, 0.02);
+    };
+    beat();
+    casinoSound._clubTimer = setInterval(beat, 480);
+  },
+
+  clubAmbienceStop() {
+    if (casinoSound._clubTimer) {
+      clearInterval(casinoSound._clubTimer);
+      casinoSound._clubTimer = null;
+    }
+  },
+
+  clubHit() {
+    unlockAudio();
+    tone(220, 0.1, 'square', 0.08);
+    tone(440, 0.12, 'sine', 0.07, 0.05);
   }
 };

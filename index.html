@@ -17,11 +17,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=32">
-  <link rel="stylesheet" href="/css/roulette.css?v=32">
-  <link rel="stylesheet" href="/css/game-scene.css?v=32">
-  <link rel="stylesheet" href="/css/celebration.css?v=32">
-  <link rel="stylesheet" href="/css/gate.css?v=32">
+  <link rel="stylesheet" href="/css/style.css?v=33">
+  <link rel="stylesheet" href="/css/roulette.css?v=33">
+  <link rel="stylesheet" href="/css/game-scene.css?v=33">
+  <link rel="stylesheet" href="/css/celebration.css?v=33">
+  <link rel="stylesheet" href="/css/gate.css?v=33">
+  <link rel="stylesheet" href="/css/club.css?v=33">
 </head>
 <body>
   <div id="age-gate-frame" class="age-gate-frame" aria-hidden="true">
@@ -127,7 +128,7 @@
             <div class="header-profile-avatar" id="menu-player-avatar"></div>
             <span class="header-profile-name" id="menu-player-name">Player1</span>
           </div>
-          <button type="button" class="btn-lounge-entry" id="btn-lounge-entry">Lounge</button>
+          <button type="button" class="btn-lounge-entry" id="btn-lounge-entry">Club</button>
           <button type="button" class="btn-wallet btn-wallet-compact" id="btn-connect">Wallet</button>
         </div>
       </header>
@@ -421,25 +422,17 @@
       </footer>
     </section>
 
-    <!-- SOCIAL LOUNGE -->
+    <!-- NOVA MIRAGE CLUB (walkable party floor) -->
     <section id="lounge-screen" class="screen">
       <header class="menu-header">
         <button type="button" class="btn-ghost" id="btn-lounge-back">← Lobby</button>
         <div class="menu-header-center">
-          <span class="eco-pill">SOCIAL</span>
-          <h2>Mirage Lounge</h2>
+          <span class="eco-pill">PARTY FLOOR</span>
+          <h2>Nova Mirage Club</h2>
         </div>
       </header>
       <div class="lounge-wrap">
-        <div class="lounge-hud">
-          <h3>Walk in · Video hangout · Live avatars</h3>
-          <p>Your avatar roams the lounge — video chat &amp; full 3D floor coming in updates</p>
-        </div>
         <div class="lounge-stage" id="lounge-stage"></div>
-        <div class="lounge-actions">
-          <button type="button" class="btn-secondary" id="btn-lounge-video" disabled>Video (soon)</button>
-          <button type="button" class="btn-play" id="btn-lounge-games">Browse Games</button>
-        </div>
       </div>
     </section>
 
@@ -556,7 +549,7 @@
 
   <div id="celebration-layer" class="celebration-layer" aria-hidden="true" hidden></div>
 
-  <script type="module" src="/js/main.js?v=32"></script>
+  <script type="module" src="/js/main.js?v=33"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

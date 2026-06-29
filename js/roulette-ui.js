@@ -4,8 +4,8 @@ import {
   splitPair, streetAnchor, cornerAnchor, sixLineAnchor
 } from './roulette.js';
 import { RouletteWheelCanvas } from './roulette-wheel.js';
-import { casinoSound } from './sounds.js?v=37';
-import { celebrateWin, winTier } from './celebration.js?v=37';
+import { casinoSound } from './sounds.js?v=38';
+import { celebrateWin, winTier } from './celebration.js?v=38';
 
 export class RouletteUI {
   constructor({ onBalanceChange, getBalance }) {

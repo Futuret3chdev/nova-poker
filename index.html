@@ -17,13 +17,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=37">
-  <link rel="stylesheet" href="/css/roulette.css?v=37">
-  <link rel="stylesheet" href="/css/game-scene.css?v=37">
-  <link rel="stylesheet" href="/css/celebration.css?v=37">
-  <link rel="stylesheet" href="/css/gate.css?v=37">
-  <link rel="stylesheet" href="/css/blackjack.css?v=37">
-  <link rel="stylesheet" href="/css/starfall.css?v=37">
+  <link rel="stylesheet" href="/css/style.css?v=38">
+  <link rel="stylesheet" href="/css/roulette.css?v=38">
+  <link rel="stylesheet" href="/css/game-scene.css?v=38">
+  <link rel="stylesheet" href="/css/celebration.css?v=38">
+  <link rel="stylesheet" href="/css/gate.css?v=38">
+  <link rel="stylesheet" href="/css/game-fx.css?v=38">
+  <link rel="stylesheet" href="/css/blackjack.css?v=38">
+  <link rel="stylesheet" href="/css/starfall.css?v=38">
 </head>
 <body>
   <div id="age-gate-frame" class="age-gate-frame" aria-hidden="true">
@@ -437,19 +438,37 @@
           <h1 class="bj-title">BLACKJACK</h1>
           <div class="bj-bank">BANK <strong>₵<span id="bj-balance">10,000</span></strong></div>
         </header>
-        <div class="bj-table-wrap">
-          <div class="bj-table" id="bj-table" data-phase="bet">
-            <div class="bj-felt">
-              <div class="bj-dealer-zone">
-                <p class="bj-zone-label">Dealer</p>
-                <div class="bj-cards" id="bj-dealer-cards"></div>
-                <p class="bj-hand-val" id="bj-dealer-val"></p>
-              </div>
-              <div class="bj-bet-spot">₵<span id="bj-bet-amt">0</span></div>
-              <div class="bj-player-zone">
-                <p class="bj-zone-label">You</p>
-                <div class="bj-cards" id="bj-player-cards"></div>
-                <p class="bj-hand-val" id="bj-player-val"></p>
+        <div class="bj-table-wrap" id="bj-table-wrap">
+          <div class="bj-rail">
+            <div class="bj-spotlight" aria-hidden="true"></div>
+            <div class="bj-dealer-host" aria-hidden="true">
+              <img src="/assets/dealer-hostess.jpg" alt="" loading="eager">
+              <div class="bj-dealer-glow"></div>
+            </div>
+            <div class="bj-shoe" id="bj-shoe" aria-hidden="true">
+              <div class="bj-shoe-stack"></div>
+              <span class="bj-shoe-label">SHOE</span>
+            </div>
+            <div class="bj-table" id="bj-table" data-phase="bet">
+              <div class="bj-felt">
+                <div class="bj-felt-markings" aria-hidden="true">
+                  <span class="bj-mark-center">21</span>
+                  <span class="bj-mark-insurance">INSURANCE</span>
+                </div>
+                <div class="bj-dealer-zone">
+                  <p class="bj-zone-label">Dealer</p>
+                  <div class="bj-cards" id="bj-dealer-cards"></div>
+                  <p class="bj-hand-val" id="bj-dealer-val"></p>
+                </div>
+                <div class="bj-bet-spot" id="bj-bet-spot">
+                  <div class="bj-chip-stack" id="bj-chip-stack"></div>
+                  <span class="bj-bet-label">₵<span id="bj-bet-amt">0</span></span>
+                </div>
+                <div class="bj-player-zone">
+                  <p class="bj-zone-label">You</p>
+                  <div class="bj-cards" id="bj-player-cards"></div>
+                  <p class="bj-hand-val" id="bj-player-val"></p>
+                </div>
               </div>
             </div>
           </div>
@@ -487,13 +506,30 @@
           </div>
         </header>
         <div class="sf-machine" id="sf-machine">
-          <div class="sf-frame">
-            <p class="sf-marquee">✦ NEON REELS ✦ 5 LINES ✦</p>
+          <div class="sf-aurora" aria-hidden="true"></div>
+          <div class="sf-frame" id="sf-frame">
+            <div class="sf-jackpot-ticker">
+              <span class="sf-ticker-label">JACKPOT</span>
+              <span class="sf-ticker-amt" id="sf-jackpot">₵88,888</span>
+            </div>
+            <div class="sf-marquee-wrap">
+              <p class="sf-marquee"><span>✦ STARFALL SPINS ✦ 5 PAYLINES ✦ MATCH 3+ ✦ BIG WINS ✦&nbsp;&nbsp;✦ STARFALL SPINS ✦ 5 PAYLINES ✦ MATCH 3+ ✦ BIG WINS ✦&nbsp;&nbsp;</span></p>
+            </div>
             <div class="sf-window">
+              <div class="sf-paylines" id="sf-paylines" aria-hidden="true">
+                <span class="sf-pline" data-line="0"></span>
+                <span class="sf-pline" data-line="1"></span>
+                <span class="sf-pline" data-line="2"></span>
+              </div>
               <div class="sf-line-overlay" id="sf-line-overlay"></div>
+              <div class="sf-reel-glow" aria-hidden="true"></div>
               <div class="sf-reels" id="sf-reels"></div>
             </div>
             <div class="sf-paytable" id="sf-paytable"></div>
+          </div>
+          <div class="sf-win-popup" id="sf-win-popup" hidden>
+            <span class="sf-win-popup-label">WIN</span>
+            <span class="sf-win-popup-amt" id="sf-win-popup-amt">₵0</span>
           </div>
         </div>
         <p class="sf-message" id="sf-message">Match 3+ symbols on a payline</p>
@@ -621,7 +657,7 @@
 
   <div id="celebration-layer" class="celebration-layer" aria-hidden="true" hidden></div>
 
-  <script type="module" src="/js/main.js?v=37"></script>
+  <script type="module" src="/js/main.js?v=38"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

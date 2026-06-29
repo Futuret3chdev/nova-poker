@@ -1,0 +1,135 @@
+/* ── Shared game FX (particles, banners, bursts) ── */
+.gfx-ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.gfx-particle {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  animation: gfx-float var(--dur) ease-in-out var(--delay) infinite;
+}
+.gfx-gold .gfx-particle {
+  background: radial-gradient(circle, #fff9c4 0%, #ffc107 60%, transparent 100%);
+  box-shadow: 0 0 6px rgba(255, 193, 7, 0.8);
+}
+.gfx-neon .gfx-particle {
+  background: radial-gradient(circle, #fff 0%, #7c4dff 50%, transparent 100%);
+  box-shadow: 0 0 8px rgba(124, 77, 255, 0.9);
+}
+.gfx-stars .gfx-particle {
+  width: calc(var(--size) * 1.5);
+  height: calc(var(--size) * 1.5);
+  background: transparent;
+  box-shadow: none;
+}
+.gfx-stars .gfx-particle::after {
+  content: '✦';
+  font-size: calc(var(--size) * 2);
+  color: rgba(255, 193, 7, 0.5);
+  text-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
+}
+@keyframes gfx-float {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+  50% { transform: translate(var(--drift), -30px) scale(1.3); opacity: 0.9; }
+}
+
+.gfx-burst {
+  position: fixed;
+  z-index: 2500;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+.gfx-burst-bit {
+  position: absolute;
+  font-size: 0.85rem;
+  color: #ffc107;
+  text-shadow: 0 0 8px rgba(255, 193, 7, 0.8);
+  animation: gfx-burst-fly var(--bd) ease-out forwards;
+}
+@keyframes gfx-burst-fly {
+  from { transform: translate(0, 0) scale(1); opacity: 1; }
+  to { transform: translate(var(--bx), var(--by)) scale(0.3); opacity: 0; }
+}
+
+.gfx-banner {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%) scale(0.6);
+  z-index: 20;
+  opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.22, 1.2, 0.36, 1), opacity 0.35s;
+  pointer-events: none;
+}
+.gfx-banner.on {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.gfx-banner-text {
+  position: relative;
+  z-index: 1;
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.gfx-banner-glow {
+  position: absolute;
+  inset: -20px -40px;
+  background: radial-gradient(ellipse, rgba(255, 193, 7, 0.45) 0%, transparent 70%);
+  animation: gfx-banner-pulse 0.8s ease-in-out infinite alternate;
+}
+@keyframes gfx-banner-pulse {
+  from { opacity: 0.6; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1.05); }
+}
+.gfx-banner-win .gfx-banner-text {
+  color: #69f0ae;
+  text-shadow: 0 0 30px rgba(105, 240, 174, 0.8);
+}
+.gfx-banner-blackjack .gfx-banner-text,
+.gfx-banner-jackpot .gfx-banner-text {
+  background: linear-gradient(180deg, #fff 0%, #ffc107 50%, #ff6f00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 20px rgba(255, 193, 7, 0.9));
+}
+.gfx-banner-lose .gfx-banner-text {
+  color: #ef5350;
+  text-shadow: 0 0 20px rgba(239, 83, 80, 0.5);
+}
+
+.gfx-chase {
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+}
+.gfx-bulb {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  left: 50%;
+  top: 0;
+  margin-left: -4px;
+  transform-origin: 50% calc(50% + 9999px);
+  transform: rotate(calc(360deg / var(--n) * var(--i)));
+  background: #ffc107;
+  box-shadow: 0 0 10px #ffc107;
+  animation: gfx-bulb-blink 1.2s ease-in-out calc(var(--i) * 0.1s) infinite;
+}
+@keyframes gfx-bulb-blink {
+  0%, 100% { opacity: 0.25; background: #7c4dff; box-shadow: 0 0 6px #7c4dff; }
+  50% { opacity: 1; background: #ffc107; box-shadow: 0 0 14px #ffc107; }
+}

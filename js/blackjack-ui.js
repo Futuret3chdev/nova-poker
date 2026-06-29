@@ -1,14 +1,30 @@
-/** Blackjack table — animated deals, flips, chip bets. */
+/** Blackjack table — premium animated deals, chips, FX. */
 
 import {
-  createShoe, draw, handValue, isBlackjack, isBust, canDouble,
+  createShoe, draw, isBlackjack, isBust, canDouble,
   dealerShouldHit, resolveRound, describeHand
 } from './blackjack.js';
-import { cardHTML } from './deck.js';
+import { cardLabel, cardColor } from './deck.js';
 import { casinoSound } from './sounds.js';
-import { celebrateWin, winTier } from './celebration.js?v=37';
+import { celebrateWin, winTier } from './celebration.js?v=38';
+import { spawnAmbient, burstAt, showBanner } from './game-fx.js?v=38';
 
 const CHIPS = [10, 25, 50, 100, 500];
+const SUIT_SYM = { h: '♥', d: '♦', c: '♣', s: '♠' };
+
+function renderBjCard(card, faceDown = false) {
+  if (faceDown || !card) {
+    return `<div class="bj-card bj-card-back"><div class="bj-card-back-pattern"></div></div>`;
+  }
+  const color = cardColor(card.suit);
+  const label = cardLabel(card.rank);
+  const sym = SUIT_SYM[card.suit];
+  return `<div class="bj-card bj-card-${color}">
+    <span class="bj-card-corner tl"><span>${label}</span><span>${sym}</span></span>
+    <span class="bj-card-face">${sym}</span>
+    <span class="bj-card-corner br"><span>${label}</span><span>${sym}</span></span>
+  </div>`;
+}
 
 export class BlackjackUI {
   constructor({ getBalance, onBalanceChange }) {
@@ -16,6 +32,7 @@ export class BlackjackUI {
     this.onBalanceChange = onBalanceChange;
     this.shoe = createShoe();
     this.bet = 0;
+    this.chipStack = [];
     this.chip = CHIPS[1];
     this.phase = 'bet';
     this.player = [];
@@ -26,8 +43,10 @@ export class BlackjackUI {
     this.buildChips();
     this.bind();
     this.renderBalance();
+    this.renderChipStack();
     this.setPhase('bet');
-    this.setMessage('Tap felt to bet — beat the dealer to 21');
+    this.setMessage('Tap felt to place chips — then DEAL');
+    this._stopAmbient = spawnAmbient(this.els.wrap, 'gold', 28);
   }
 
   cacheEls() {
@@ -46,7 +65,11 @@ export class BlackjackUI {
       double: document.getElementById('btn-bj-double'),
       clear: document.getElementById('btn-bj-clear'),
       table: document.getElementById('bj-table'),
-      felt: document.querySelector('.bj-felt')
+      felt: document.querySelector('.bj-felt'),
+      wrap: document.getElementById('bj-table-wrap'),
+      betSpot: document.getElementById('bj-bet-spot'),
+      chipStack: document.getElementById('bj-chip-stack'),
+      shoe: document.getElementById('bj-shoe')
     };
   }
 
@@ -83,6 +106,14 @@ export class BlackjackUI {
     if (this.els.bet) this.els.bet.textContent = this.bet.toLocaleString();
   }
 
+  renderChipStack() {
+    if (!this.els.chipStack) return;
+    this.els.chipStack.innerHTML = this.chipStack.map((v, i) => `
+      <span class="bj-stack-chip" data-v="${v}" style="--i:${i}">₵${v}</span>
+    `).join('');
+    this.els.betSpot?.classList.toggle('has-chips', this.bet > 0);
+  }
+
   setMessage(msg, type = '') {
     if (this.els.msg) {
       this.els.msg.textContent = msg;
@@ -112,8 +143,10 @@ export class BlackjackUI {
       return;
     }
     this.bet += this.chip;
+    this.chipStack.push(this.chip);
     this.onBalanceChange(-this.chip);
     this.renderBalance();
+    this.renderChipStack();
     casinoSound.chip();
     this.spawnChipAnim();
     this.setPhase('bet');
@@ -123,16 +156,25 @@ export class BlackjackUI {
     if (this.bet > 0) {
       this.onBalanceChange(this.bet);
       this.bet = 0;
+      this.chipStack = [];
       this.renderBalance();
+      this.renderChipStack();
     }
   }
 
   spawnChipAnim() {
     const chip = document.createElement('span');
     chip.className = 'bj-chip-fly';
+    chip.dataset.v = this.chip;
     chip.textContent = `₵${this.chip}`;
+    chip.style.background = `radial-gradient(circle at 30% 30%, #fff, var(--chip-color, #ffc107))`;
     this.els.felt?.appendChild(chip);
-    setTimeout(() => chip.remove(), 700);
+    setTimeout(() => chip.remove(), 750);
+  }
+
+  pulseShoe() {
+    this.els.shoe?.classList.add('bj-shoe-deal');
+    setTimeout(() => this.els.shoe?.classList.remove('bj-shoe-deal'), 300);
   }
 
   async dealHand() {
@@ -141,8 +183,11 @@ export class BlackjackUI {
     this.dealer = [];
     this.doubled = false;
     this.dealerHidden = true;
+    this.chipStack = [];
+    this.renderChipStack();
+    this.els.table?.removeAttribute('data-outcome');
     this.setPhase('dealing');
-    this.setMessage('Dealing…');
+    this.setMessage('Dealing from the shoe…');
     this.renderHands();
 
     await this.dealCard('player', 0);
@@ -161,6 +206,7 @@ export class BlackjackUI {
   }
 
   async dealCard(who, index, hidden = false) {
+    this.pulseShoe();
     const pulled = draw(this.shoe);
     this.shoe = pulled.shoe;
     const card = pulled.card;
@@ -171,11 +217,13 @@ export class BlackjackUI {
     const wrap = document.createElement('div');
     wrap.className = 'bj-card-slot';
     wrap.style.setProperty('--deal-i', index);
-    wrap.innerHTML = hidden ? cardHTML(null, true) : cardHTML(card);
+    wrap.style.setProperty('--from-x', '100px');
+    wrap.style.setProperty('--from-y', '-90px');
+    wrap.innerHTML = hidden ? renderBjCard(null, true) : renderBjCard(card);
     if (hidden) wrap.dataset.hidden = '1';
     el?.appendChild(wrap);
     casinoSound.deal();
-    await this.wait(320);
+    await this.wait(360);
   }
 
   renderHands() {
@@ -226,6 +274,7 @@ export class BlackjackUI {
     this.doubled = true;
     this.renderBalance();
     casinoSound.raise();
+    burstAt(this.els.betSpot, 'coins', 10);
     this.setPhase('dealing');
     await this.dealCard('player', this.player.length);
     this.updateValues();
@@ -241,9 +290,9 @@ export class BlackjackUI {
   async playDealer() {
     await this.revealDealer();
     this.setPhase('dealer');
-    this.setMessage('Dealer plays…');
+    this.setMessage('Dealer reveals…');
     while (dealerShouldHit(this.dealer)) {
-      await this.wait(500);
+      await this.wait(520);
       await this.dealCard('dealer', this.dealer.length);
       this.updateValues();
     }
@@ -256,10 +305,10 @@ export class BlackjackUI {
     if (hiddenSlot) {
       hiddenSlot.classList.add('bj-flip');
       casinoSound.chip();
-      await this.wait(200);
-      hiddenSlot.innerHTML = cardHTML(this.dealer[1]);
+      await this.wait(220);
+      hiddenSlot.innerHTML = renderBjCard(this.dealer[1]);
       hiddenSlot.removeAttribute('data-hidden');
-      await this.wait(400);
+      await this.wait(450);
     }
     this.updateValues();
   }
@@ -272,6 +321,9 @@ export class BlackjackUI {
       doubled: this.doubled
     });
     const baseBet = this.bet;
+    const outcome = result.outcome === 'blackjack' ? 'blackjack' : result.outcome;
+
+    this.els.table?.setAttribute('data-outcome', outcome);
 
     if (result.payout > 0) {
       this.onBalanceChange(baseBet + result.payout);
@@ -279,21 +331,30 @@ export class BlackjackUI {
       if (result.outcome === 'blackjack') casinoSound.bigWin();
       const tier = winTier(result.payout, baseBet);
       if (tier !== 'small') celebrateWin(result.payout, tier, '₵');
+      burstAt(this.els.felt, 'coins', 18);
+      showBanner(this.els.wrap, result.outcome === 'blackjack' ? 'BLACKJACK!' : 'YOU WIN', outcome === 'blackjack' ? 'blackjack' : 'win');
     } else if (result.payout < 0) {
       casinoSound.lose();
+      showBanner(this.els.wrap, 'DEALER WINS', 'lose');
     } else if (result.outcome === 'push') {
       this.onBalanceChange(baseBet);
+      showBanner(this.els.wrap, 'PUSH', 'win');
     }
 
     const msgType = result.outcome === 'blackjack' ? 'blackjack' : result.outcome;
     this.setMessage(result.message, msgType);
     this.els.table?.classList.add('bj-round-end');
-    setTimeout(() => this.els.table?.classList.remove('bj-round-end'), 1200);
+    setTimeout(() => {
+      this.els.table?.classList.remove('bj-round-end');
+      this.els.table?.removeAttribute('data-outcome');
+    }, 1400);
 
     this.bet = 0;
+    this.chipStack = [];
     this.renderBalance();
+    this.renderChipStack();
     this.setPhase('bet');
-    this.setMessage(`${result.message} — place your next bet`);
+    setTimeout(() => this.setMessage(`${result.message} — place your next bet`), 1800);
   }
 
   wait(ms) {
@@ -301,6 +362,8 @@ export class BlackjackUI {
   }
 
   destroy() {
+    this._stopAmbient?.();
     this.els.table?.removeAttribute('data-phase');
+    this.els.table?.removeAttribute('data-outcome');
   }
 }

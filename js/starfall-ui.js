@@ -1,13 +1,13 @@
-/** Starfall Spins — cinematic reel animations & win FX. */
+/** Starfall Spins — cinematic reel cabinet & win FX. */
 
 import {
   SYMBOLS, BET_STEPS, LINES, PAYTABLE, spinGridTease, evaluate
 } from './starfall.js';
-import { casinoSound, unlockAudio } from './sounds.js?v=37';
-import { celebrateWin, winTier } from './celebration.js?v=37';
+import { casinoSound, unlockAudio } from './sounds.js?v=38';
+import { celebrateWin, winTier } from './celebration.js?v=38';
+import { spawnAmbient, burstAt, chaseLights } from './game-fx.js?v=38';
 
 const ROW_H = 88;
-const REEL_SYMBOLS = 12;
 
 export class StarfallUI {
   constructor({ getBalance, onBalanceChange }) {
@@ -16,11 +16,15 @@ export class StarfallUI {
     this.betIdx = 1;
     this.spinning = false;
     this.grid = null;
+    this.jackpot = 88888;
     this.cacheEls();
     this.buildReels();
     this.bind();
     this.renderBalance();
-    this.setMessage('Match 3+ on a payline — 5 lines active');
+    chaseLights(this.els.frame, 16);
+    this._stopAmbient = spawnAmbient(this.els.machine, 'stars', 32);
+    this.tickJackpot();
+    this.setMessage('Match 3+ on a payline — watch the reels light up');
   }
 
   cacheEls() {
@@ -31,11 +35,16 @@ export class StarfallUI {
       msg: document.getElementById('sf-message'),
       reels: document.getElementById('sf-reels'),
       lines: document.getElementById('sf-line-overlay'),
+      paylines: document.getElementById('sf-paylines'),
       spin: document.getElementById('btn-sf-spin'),
       betDown: document.getElementById('btn-sf-bet-down'),
       betUp: document.getElementById('btn-sf-bet-up'),
       machine: document.getElementById('sf-machine'),
-      paytable: document.getElementById('sf-paytable')
+      frame: document.getElementById('sf-frame'),
+      paytable: document.getElementById('sf-paytable'),
+      jackpot: document.getElementById('sf-jackpot'),
+      winPopup: document.getElementById('sf-win-popup'),
+      winPopupAmt: document.getElementById('sf-win-popup-amt')
     };
   }
 
@@ -47,6 +56,19 @@ export class StarfallUI {
     return this.betPerLine * LINES.length;
   }
 
+  tickJackpot() {
+    this.jackpot += Math.floor(Math.random() * 40) + 8;
+    if (this.els.jackpot) {
+      this.els.jackpot.textContent = `₵${this.jackpot.toLocaleString()}`;
+    }
+    this._jackpotTimer = setInterval(() => {
+      this.jackpot += Math.floor(Math.random() * 25) + 3;
+      if (this.els.jackpot) {
+        this.els.jackpot.textContent = `₵${this.jackpot.toLocaleString()}`;
+      }
+    }, 2200);
+  }
+
   buildReels() {
     if (!this.els.reels) return;
     this.els.reels.innerHTML = '';
@@ -56,7 +78,7 @@ export class StarfallUI {
       reel.dataset.col = col;
       const strip = document.createElement('div');
       strip.className = 'sf-strip';
-      for (let i = 0; i < REEL_SYMBOLS; i++) {
+      for (let i = 0; i < 10; i++) {
         const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
         strip.appendChild(this.symbolCell(sym, i));
       }
@@ -70,15 +92,20 @@ export class StarfallUI {
     const cell = document.createElement('div');
     cell.className = `sf-cell sf-tier-${sym.tier}`;
     cell.dataset.sym = sym.id;
-    cell.innerHTML = `<span class="sf-icon">${sym.icon}</span>`;
     cell.style.setProperty('--row', row);
+    cell.innerHTML = `
+      <div class="sf-gem">
+        <span class="sf-gem-glow"></span>
+        <span class="sf-gem-inner">${sym.icon}</span>
+      </div>
+    `;
     return cell;
   }
 
   renderPaytable() {
     if (!this.els.paytable) return;
-    this.els.paytable.innerHTML = SYMBOLS.slice(0, 4).map((s) => `
-      <span class="sf-pay-item"><b>${s.icon}</b> ×5 = ${PAYTABLE[s.id]?.[5] || 0}×</span>
+    this.els.paytable.innerHTML = SYMBOLS.map((s) => `
+      <span class="sf-pay-item"><b>${s.icon}</b>×5=${PAYTABLE[s.id]?.[5] || 0}×</span>
     `).join('');
   }
 
@@ -107,6 +134,19 @@ export class StarfallUI {
     }
   }
 
+  showWinPopup(amount) {
+    const pop = this.els.winPopup;
+    const amt = this.els.winPopupAmt;
+    if (!pop || !amt) return;
+    amt.textContent = `₵${amount.toLocaleString()}`;
+    pop.hidden = false;
+    requestAnimationFrame(() => pop.classList.add('on'));
+    setTimeout(() => {
+      pop.classList.remove('on');
+      setTimeout(() => { pop.hidden = true; }, 500);
+    }, 2400);
+  }
+
   async spin() {
     if (this.spinning) return;
     const cost = this.totalBet;
@@ -118,32 +158,37 @@ export class StarfallUI {
     unlockAudio();
     this.spinning = true;
     this.els.spin.disabled = true;
+    this.els.machine?.classList.add('sf-spinning');
     this.els.machine?.classList.remove('sf-win-flash', 'sf-jackpot');
     this.clearWinFX();
 
     this.onBalanceChange(-cost);
     this.renderBalance();
     casinoSound.spinStart();
-    this.setMessage('Spinning…');
+    this.setMessage('Reels spinning…');
 
     this.grid = spinGridTease();
     const results = evaluate(this.grid, this.betPerLine);
 
     await this.animateReels(this.grid);
 
+    this.els.machine?.classList.remove('sf-spinning');
+
     if (results.total > 0) {
       this.onBalanceChange(results.total);
       if (this.els.win) this.els.win.textContent = `+₵${results.total.toLocaleString()}`;
       const tier = winTier(results.total, cost);
       this.showWinFX(results, tier);
+      this.showWinPopup(results.total);
+      burstAt(this.els.frame, 'stars', 20);
       if (tier === 'jackpot' || tier === 'big') casinoSound.bigWin();
       else casinoSound.win();
       celebrateWin(results.total, tier, '₵');
-      this.setMessage(`WIN ₵${results.total.toLocaleString()}!`, 'win');
+      this.setMessage(`BIG WIN — ₵${results.total.toLocaleString()}!`, 'win');
     } else {
       if (this.els.win) this.els.win.textContent = '—';
       casinoSound.lose();
-      this.setMessage('No line hit — spin again', 'lose');
+      this.setMessage('No line hit — spin again');
     }
 
     this.renderBalance();
@@ -153,51 +198,56 @@ export class StarfallUI {
 
   async animateReels(grid) {
     const reels = [...this.els.reels.querySelectorAll('.sf-reel')];
-    const stops = [];
 
     for (let col = 0; col < 5; col++) {
       const strip = reels[col].querySelector('.sf-strip');
       strip.innerHTML = '';
       const padding = [];
-      for (let i = 0; i < 8; i++) padding.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+      for (let i = 0; i < 10; i++) padding.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
       const finalRows = [grid[0][col], grid[1][col], grid[2][col]];
       [...padding, ...finalRows, ...padding.slice(0, 2)].forEach((sym, i) => {
         strip.appendChild(this.symbolCell(sym, i));
       });
-      const offset = (padding.length) * ROW_H;
-      stops.push({ strip, offset, col });
+      const offset = padding.length * ROW_H;
+
+      await new Promise((resolve) => {
+        strip.classList.add('sf-spinning');
+        strip.style.transition = 'none';
+        strip.style.transform = 'translateY(0)';
+        void strip.offsetWidth;
+        const dur = 1.15 + col * 0.28 + Math.random() * 0.12;
+        strip.style.transition = `transform ${dur}s cubic-bezier(0.1, 0.85, 0.15, 1)`;
+        strip.style.transform = `translateY(-${offset}px)`;
+        setTimeout(() => {
+          casinoSound.reelStop(col);
+          strip.classList.remove('sf-spinning');
+          reels[col].classList.add('sf-reel-stop');
+          setTimeout(() => reels[col].classList.remove('sf-reel-stop'), 400);
+          resolve();
+        }, dur * 1000 + 50);
+      });
     }
-
-    const promises = stops.map(({ strip, offset, col }, i) => new Promise((resolve) => {
-      strip.classList.add('sf-spinning');
-      strip.style.transition = 'none';
-      strip.style.transform = 'translateY(0)';
-      void strip.offsetWidth;
-      const dur = 1.1 + col * 0.22 + Math.random() * 0.15;
-      strip.style.transition = `transform ${dur}s cubic-bezier(0.12, 0.8, 0.2, 1)`;
-      strip.style.transform = `translateY(-${offset}px)`;
-      setTimeout(() => {
-        casinoSound.reelStop(col);
-        strip.classList.remove('sf-spinning');
-        resolve();
-      }, dur * 1000 + 40);
-    }));
-
-    await Promise.all(promises);
   }
 
   showWinFX(results, tier) {
     this.els.machine?.classList.add('sf-win-flash');
     if (tier === 'jackpot') this.els.machine?.classList.add('sf-jackpot');
 
+    const lineRows = new Set();
     results.wins.forEach((win) => {
       win.cells.forEach(({ row, col }) => {
         const reel = this.els.reels?.querySelector(`[data-col="${col}"]`);
         const cells = reel?.querySelectorAll('.sf-cell');
-        const idx = 8 + row;
+        const idx = 10 + row;
         cells?.[idx]?.classList.add('sf-cell-win');
       });
+      lineRows.add(LINES[win.line][1]);
       this.drawWinLine(win.line);
+    });
+
+    this.els.paylines?.querySelectorAll('.sf-pline').forEach((pl) => {
+      const row = LINES[Number(pl.dataset.line)]?.[1];
+      pl.classList.toggle('active', lineRows.has(row));
     });
   }
 
@@ -205,7 +255,6 @@ export class StarfallUI {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'sf-win-line');
     svg.setAttribute('viewBox', '0 0 500 264');
-    const y = [44, 132, 220][LINES[lineIdx][0]] || 132;
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     const points = LINES[lineIdx].map((row, col) => {
       const x = 50 + col * 100;
@@ -215,7 +264,7 @@ export class StarfallUI {
     path.setAttribute('d', points);
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', 'url(#sf-line-grad)');
-    path.setAttribute('stroke-width', '4');
+    path.setAttribute('stroke-width', '5');
     path.setAttribute('stroke-linecap', 'round');
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     defs.innerHTML = `<linearGradient id="sf-line-grad" x1="0%" y1="0%" x2="100%"><stop offset="0%" stop-color="#ffc107"/><stop offset="50%" stop-color="#fff"/><stop offset="100%" stop-color="#ff4081"/></linearGradient>`;
@@ -225,11 +274,14 @@ export class StarfallUI {
   }
 
   clearWinFX() {
-    this.els.lines && (this.els.lines.innerHTML = '');
+    if (this.els.lines) this.els.lines.innerHTML = '';
     this.els.reels?.querySelectorAll('.sf-cell-win').forEach((c) => c.classList.remove('sf-cell-win'));
+    this.els.paylines?.querySelectorAll('.sf-pline').forEach((pl) => pl.classList.remove('active'));
   }
 
   destroy() {
+    if (this._jackpotTimer) clearInterval(this._jackpotTimer);
+    this._stopAmbient?.();
     this.clearWinFX();
   }
 }
